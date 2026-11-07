@@ -56,6 +56,13 @@ NSArray<NSDictionary *> *KnownHosts() {
         @"chrome-extension://gcllgfdnfnllodcaambdaknbipemelie/",
       ],
     },
+    @{
+      @"name" : @"com.ardia.apple_passwords",
+      @"description" : @"iCloud Passwords helper, started through Google Chrome",
+      @"path" : [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"Contents/Helpers/ardia-apple-passwords"],
+      @"type" : @"stdio",
+      @"allowed_origins" : @[ @"chrome-extension://pejdijmoenmkgeppbflobdenhhabjlaj/" ],
+    },
   ];
 }
 
