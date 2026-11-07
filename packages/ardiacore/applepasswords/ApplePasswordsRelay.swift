@@ -98,6 +98,19 @@ final class DevTools {
   }
 }
 
+func parentAge() -> TimeInterval {
+  var info = kinfo_proc()
+  var size = MemoryLayout<kinfo_proc>.stride
+  var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getppid()]
+  guard sysctl(&mib, 4, &info, &size, nil, 0) == 0 else { return .infinity }
+  let start = info.kp_proc.p_un.__p_starttime
+  return Date().timeIntervalSince1970 - (Double(start.tv_sec) + Double(start.tv_usec) / 1_000_000)
+}
+
+let ardiaStartupQuietPeriod: TimeInterval = 5
+let untilArdiaHasStarted = ardiaStartupQuietPeriod - parentAge()
+if untilArdiaHasStarted > 0 { Thread.sleep(forTimeInterval: untilArdiaHasStarted) }
+
 guard let chromeApp = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.google.Chrome"),
       let chrome = Bundle(url: chromeApp)?.executablePath
 else { fail("Google Chrome isn't installed; Apple's helper only starts under a browser Apple lists") }
