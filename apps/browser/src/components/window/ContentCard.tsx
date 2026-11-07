@@ -13,7 +13,7 @@ import { useFullscreenTab } from "../../state/tabs/pageState";
 import { DropTargets, SplitDividers, SplitToast } from "../split/SplitChrome";
 import { dockMoving, usePeekSpan, whenDockStill } from "../../state/windows/dockMotion";
 import { FrozenPage } from "./FrozenPage";
-import { setCardAnchor, setUrlAnchor, useAddressBarInSidebar, useTabLayout, watchToolbarExtensionsWidth } from "../../state/windows/layout";
+import { useDeveloperModeIn, setCardAnchor, setUrlAnchor, useAddressBarInSidebar, useTabLayout, watchToolbarExtensionsWidth } from "../../state/windows/layout";
 import { startSelectionTools } from "../../state/site/selection";
 import { startMedia } from "../../state/media/pip";
 import { urlFieldRight } from "../toolbar/Toolbar";
@@ -38,6 +38,7 @@ export function ContentCard() {
   const fullscreenTab = useFullscreenTab(windowId);
   const tabLayout = useTabLayout();
   const addressInSidebar = useAddressBarInSidebar();
+  const developerMode = useDeveloperModeIn(windowId);
   const small = useIsSmallWindow(windowId);
   const hideWhileScrolling = useSettings((st) => st.hideToolbarWhileScrolling);
   const showSidebarButton = useSettings((st) => st.showSidebarButton !== false);
@@ -61,8 +62,8 @@ export function ContentCard() {
   const { mountedIds, panes, dividers, warmPanes, shown, lingerId, lingerRect } = usePaneLayout(windowId, activeId, split, fullscreenTab, size);
 
   const chrome = useMemo(
-    () => cardChrome({ addressInSidebar, small, split: !!split, fullscreen: !!fullscreenTab, hideWhileScrolling }),
-    [addressInSidebar, small, !!split, !!fullscreenTab, hideWhileScrolling],
+    () => cardChrome({ addressInSidebar: addressInSidebar && !developerMode, small, split: !!split, fullscreen: !!fullscreenTab, hideWhileScrolling }),
+    [addressInSidebar, developerMode, small, !!split, !!fullscreenTab, hideWhileScrolling],
   );
   const geometryFor = (rect: Rect | undefined): ToolbarGeometry => {
     if (chrome.kind === "none") return NO_TOOLBAR;
@@ -72,7 +73,7 @@ export function ContentCard() {
 
   const focusedRect = activeId ? panes[activeId] : undefined;
   useEffect(() => {
-    if (!origin || !focusedRect || chrome.kind === "none") return;
+    if (!origin || !focusedRect || chrome.kind === "none" || addressInSidebar) return;
     const g = geometryFor(focusedRect);
     const place = (extensionsWidth = 0) =>
       setUrlAnchor(windowId, {
@@ -81,7 +82,7 @@ export function ContentCard() {
         width: focusedRect.width - g.urlLeft - urlFieldRight(!!split, extensionsWidth, toolbarRow),
       });
     return watchToolbarExtensionsWidth(windowId, place);
-  }, [origin, focusedRect?.x, focusedRect?.y, focusedRect?.width, tabLayout, chrome.kind, !!split, showSidebarButton, toolbarRow]);
+  }, [origin, focusedRect?.x, focusedRect?.y, focusedRect?.width, tabLayout, chrome.kind, addressInSidebar, !!split, showSidebarButton, toolbarRow]);
 
   useEffect(() => {
     if (origin && size.width > 0) setCardAnchor(windowId, { left: origin.x, top: origin.y, width: size.width, height: size.height });

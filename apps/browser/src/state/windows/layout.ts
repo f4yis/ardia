@@ -15,18 +15,19 @@ export function useTabLayout(): "sidebar" | "top" {
   return useBrowser((s) => tabLayoutOf(s, windowId));
 }
 
-export function developerModeOn(s: BrowserState, windowId: string): boolean {
-  const url = s.settings.developerModeSites.length ? activeTab(s, windowId)?.url : undefined;
-  return !!url && s.settings.developerModeSites.includes(hostOf(url));
-}
+const isDeveloperSite = (sites: readonly string[], url: string | undefined) => !!url && sites.length > 0 && sites.includes(hostOf(url));
 
-export const wantsSidebarAddressBar = (s: BrowserState, windowId: string): boolean => s.settings.addressBar === "sidebar" && !developerModeOn(s, windowId);
+export const developerModeOn = (s: BrowserState, windowId: string): boolean => isDeveloperSite(s.settings.developerModeSites, activeTab(s, windowId)?.url);
+
+export const useDeveloperMode = (url: string): boolean => useBrowser((s) => isDeveloperSite(s.settings.developerModeSites, url));
+
+export const useDeveloperModeIn = (windowId: string): boolean => useBrowser((s) => developerModeOn(s, windowId));
 
 export function addressBarInSidebar(s: BrowserState, windowId: string): boolean {
   const w = s.windows[windowId];
   return (
     !!w &&
-    wantsSidebarAddressBar(s, windowId) &&
+    s.settings.addressBar === "sidebar" &&
     (tabsShownIn(s, windowId) || switchOn("sidebarSlide")) &&
     tabLayoutOf(s, w.id) === "sidebar"
   );
@@ -50,7 +51,7 @@ export function openingLightsCenter(s: BrowserState, windowId: string): LightsPl
     zeroWhenTabsHidden: s.settings.pageFrameZeroWhenTabsHidden,
     tabsHidden: autoHidesTabsIn(s, windowId),
   });
-  const base = wantsSidebarAddressBar(s, w.id) ? ARC_LIGHTS_CENTER : toolbarLightsCenter(s.settings.compactToolbar, frame);
+  const base = s.settings.addressBar === "sidebar" ? ARC_LIGHTS_CENTER : toolbarLightsCenter(s.settings.compactToolbar, frame);
   return sidebarLightsCenter(sidebarSideOf(s, w.id) === "right", width, open ? 0 : width, 0, base);
 }
 

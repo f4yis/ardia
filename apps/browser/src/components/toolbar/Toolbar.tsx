@@ -20,7 +20,8 @@ import { copyPageUrl } from "../../state/site/selection";
 import { closePane, openSplitPane, showSplitMenu } from "../../state/splits/actions";
 import { useEasedColor, type ToolbarPalette } from "../ui/toolbarColors";
 import { useSitePalette } from "./useSitePalette";
-import { setToolbarExtensionsWidth } from "../../state/windows/layout";
+import { setToolbarExtensionsWidth, useDeveloperMode } from "../../state/windows/layout";
+import { runCommand } from "../../state/commands/commands";
 import { SIDEBAR_FIELD } from "../sidebar/geometry";
 import { FieldSiteButton, SidebarFieldFill } from "../sidebar/SidebarField";
 import { showUrlBarMenu } from "../../state/omnibox/paste";
@@ -154,7 +155,8 @@ export function ToolbarBackdrop({ tabId }: { tabId: string }) {
 }
 
 function useUrlField(tab: ToolbarTab, windowId: string, onFocus: () => void) {
-  const showFullUrl = useSettings((s) => s.showFullUrl);
+  const developerMode = useDeveloperMode(tab.url);
+  const showFullUrl = useSettings((s) => s.showFullUrl) || developerMode;
   const insecure = usePage(tab.id, insecureLevel);
   const popover = usePages((p) => p.popover[tab.id] ?? null);
   const { hovered: pointerOver, hoverProps } = useHover();
@@ -167,7 +169,7 @@ function useUrlField(tab: ToolbarTab, windowId: string, onFocus: () => void) {
     onFocus();
     togglePopover(tab.id, "siteControls");
   };
-  return { insecure, popover, hovered, hoverProps, openPanel, toggleSiteControls, host: pageHostLabel(tab.url), trail: urlTrail(tab.url, tab.title, { hovered, showFullUrl }) };
+  return { developerMode, insecure, popover, hovered, hoverProps, openPanel, toggleSiteControls, host: pageHostLabel(tab.url), trail: urlTrail(tab.url, tab.title, { hovered, showFullUrl }) };
 }
 
 type UrlFieldProps = { tab: ToolbarTab; palette: ToolbarPalette; windowId: string; onFocus: () => void };
@@ -216,6 +218,7 @@ export const ToolbarUrlField = memo(function ToolbarUrlField({ tab, palette, win
         </Pressable>
       </ContextMenuArea>
       <FieldButtons tab={tab} palette={palette} onFocus={onFocus} popover={popover} toggleSiteControls={toggleSiteControls}>
+        {field.developerMode && <DeveloperButtons tab={tab} palette={palette} onFocus={onFocus} />}
         {hovered && (
           <>
             <PageButton tab={tab} palette={palette} windowId={windowId} />
@@ -278,6 +281,27 @@ export const SidebarUrlField = memo(function SidebarUrlField({ tab, palette, win
 
 const HOST_FULL = { flexShrink: 0, maxWidth: "100%" } as const;
 const SHRINK = { flexShrink: 1 } as const;
+
+const DEVELOPER_BUTTONS = [
+  { command: "inspectElements", icon: "cursorarrow.rays", title: "Inspect Elements" },
+  { command: "javaScriptConsole", icon: "terminal", title: "JavaScript Console" },
+  { command: "devTools", icon: "hammer", title: "Developer Tools" },
+  { command: "viewSource", icon: "chevron.left.forwardslash.chevron.right", title: "View Source" },
+  { command: "forceReload", icon: "arrow.clockwise.circle", title: "Force Reload Page" },
+] as const;
+
+function DeveloperButtons({ tab, palette, onFocus }: { tab: ToolbarTab; palette: ToolbarPalette; onFocus: () => void }) {
+  return DEVELOPER_BUTTONS.map((b) => <DeveloperButton key={b.command} tab={tab} palette={palette} onFocus={onFocus} button={b} />);
+}
+
+function DeveloperButton({ tab, palette, onFocus, button }: { tab: ToolbarTab; palette: ToolbarPalette; onFocus: () => void; button: (typeof DEVELOPER_BUTTONS)[number] }) {
+  const hint = useShortcutHint(button.command);
+  const press = () => {
+    onFocus();
+    runCommand({ command: button.command, arg: null, windowId: tab.windowId }, { tabId: tab.id });
+  };
+  return <Button variant="icon" toolbar palette={palette} icon={button.icon} look="field" onPress={press} tooltip={withShortcut(button.title, hint)} />;
+}
 
 type PageButtonProps = { tab: ToolbarTab; palette: ToolbarPalette; windowId: string };
 
