@@ -3,7 +3,7 @@ import { Animated, View } from "react-native";
 import { usePrewarm } from "../../state/tabs/prewarm";
 import { activate } from "../../state/tabs/actions";
 import { shallowEqual, useBrowserWhile, useStoreWhile, useTabValue } from "../../state/tabs/tabWatch";
-import { useSettings, useTabsShown } from "../../state/browser/hooks";
+import { useSettings, useTabsShown, useWindowFullScreen } from "../../state/browser/hooks";
 import { useSidebarField } from "../../state/sidebar/chrome";
 import { splitOf } from "../../state/splits/splits";
 import type { Tab } from "../../state/browser/types";
@@ -111,6 +111,7 @@ export const TabPane = memo(function TabPane({
   const sidebarOpen = useTabsShown(windowId);
   const sidebarFieldShown = !!sidebarField && sidebarOpen && !fullscreen && focused;
   const developerBar = developerBarShown(chrome, { developerMode: useDeveloperMode(own.url), small, fullscreen });
+  const windowFullScreen = useWindowFullScreen(windowId);
   const bookmarksBar = bookmarksBarShown(barMode, own.exists ? own : undefined) && !fullscreen && !inSplit && !small;
   const barHeight = useBookmarksBarHeight();
   const cardRadius = useCardFrame().radius;
@@ -133,7 +134,7 @@ export const TabPane = memo(function TabPane({
       style={{
         position: "absolute",
         ...(fills ? { left: 0, top: 0, right: 0, bottom: 0 } : { left: frame.x, top: frame.y, width: frame.width, height: frame.height }),
-        borderRadius: fullscreen ? 0 : cardRadius,
+        borderRadius: fullscreen || windowFullScreen ? 0 : cardRadius,
         overflow: "hidden",
         opacity: covered ? 0 : 1,
         zIndex: lingering ? -1 : undefined,

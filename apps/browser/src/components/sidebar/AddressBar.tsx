@@ -42,14 +42,15 @@ export function SidebarHeaderTools({ width }: { width: number }) {
   const toggle = useSidebarPart("sidebarButton") && toggleWanted;
   const navShown = useSidebarPart("navButtons");
   const right = useSidebarSide(windowId) === "right";
+  const fullScreen = useWindowFullScreen(windowId);
   const sidebarHint = useShortcutHint("toggleSidebar");
-  const toggleX = headerToggleX(useWindowFullScreen(windowId));
+  const toggleX = headerToggleX(fullScreen);
   const usable = width - useSidebarCaptionRoom();
   const { buttons, step } = navButtonsFitting(usable, BUTTON, toggle, toggleX);
   const shown = tab && navShown ? buttons : [];
   const last = usable - EDGE - BUTTON / 2;
   const centres = shown.map((_, i) => last - (shown.length - 1 - i) * step);
-  const at = toggle ? [toggleX, ...centres] : centres;
+  const at = toggle ? [fullScreen ? last - shown.length * step : toggleX, ...centres] : centres;
   const plate = Math.min(PLATE, step);
   const place = (center: number) => ({
     style: { position: "absolute" as const, top: LIGHTS_Y - plate / 2, left: center - plate / 2 },

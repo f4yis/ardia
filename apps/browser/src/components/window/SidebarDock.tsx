@@ -135,7 +135,7 @@ export function DockedLayout({
       }),
     [dock, width, sideInset, frame.inset],
   );
-  const hiddenTop = useCardTopInset(frame.inset);
+  const hiddenTop = useCardTopInset(inset.bottom);
   const top = useMemo(() => dock.interpolate({ inputRange: [0, 1], outputRange: [hiddenTop, inset.top] }), [dock, hiddenTop, inset.top]);
   const stripY = useMemo(() => dock.interpolate({ inputRange: [0, 1], outputRange: [-inset.top, 0] }), [dock, inset.top]);
   const stripShown = topTabs && (open || !away);
