@@ -118,7 +118,10 @@ posix_spawn_file_actions_adddup2(&actions, toChrome.read, 3)
 posix_spawn_file_actions_adddup2(&actions, fromChrome.write, 4)
 let arguments = [
   chrome, "--headless", "--user-data-dir=\(profile.path)", "--remote-debugging-pipe", "--enable-unsafe-extension-debugging",
-  "--no-first-run", "--no-default-browser-check", "--use-mock-keychain", "--disable-background-networking", "about:blank",
+  "--no-first-run", "--no-default-browser-check", "--use-mock-keychain", "--disable-background-networking",
+  "--disable-component-extensions-with-background-pages", "--in-process-gpu",
+  "--disable-features=SpareRendererForSitePerProcess,WebUIOmniboxPopup", "--enable-features=NetworkServiceInProcess2",
+  "about:blank",
 ]
 var argv = arguments.map { strdup($0) } + [nil]
 var chromePid: pid_t = 0
@@ -144,6 +147,9 @@ for _ in 0..<100 {
   usleep(50_000)
 }
 guard let worker else { fail("the relay extension didn't start") }
+for target in devtools.call("Target.getTargets")["targetInfos"] as? [[String: Any]] ?? [] where target["type"] as? String == "page" {
+  devtools.call("Target.closeTarget", ["targetId": target["targetId"] ?? ""])
+}
 let session = devtools.call("Target.attachToTarget", ["targetId": worker, "flatten": true])["sessionId"] as? String
 devtools.call("Runtime.addBinding", ["name": "relayOut"], session: session)
 devtools.call("Runtime.addBinding", ["name": "relayClosed"], session: session)
