@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { autoHidesTabsIn, sidebarSideOf, tabLayoutOf, tabsShownIn } from "../browser/model";
+import { activeTab, autoHidesTabsIn, sidebarSideOf, tabLayoutOf, tabsShownIn } from "../browser/model";
+import { hostOf } from "@ardia/core";
 import { switchOn } from "../../platform/killSwitches";
 import { ARC_LIGHTS_CENTER, lightsCenter, sidebarLightsCenter, toolbarLightsCenter, TOP_STRIP_LIGHTS_CENTER } from "./dockMotion";
 import type { LightsPlace } from "../../platform/windows";
@@ -14,11 +15,18 @@ export function useTabLayout(): "sidebar" | "top" {
   return useBrowser((s) => tabLayoutOf(s, windowId));
 }
 
+export function developerModeOn(s: BrowserState, windowId: string): boolean {
+  const url = s.settings.developerModeSites.length ? activeTab(s, windowId)?.url : undefined;
+  return !!url && s.settings.developerModeSites.includes(hostOf(url));
+}
+
+export const wantsSidebarAddressBar = (s: BrowserState, windowId: string): boolean => s.settings.addressBar === "sidebar" && !developerModeOn(s, windowId);
+
 export function addressBarInSidebar(s: BrowserState, windowId: string): boolean {
   const w = s.windows[windowId];
   return (
     !!w &&
-    s.settings.addressBar === "sidebar" &&
+    wantsSidebarAddressBar(s, windowId) &&
     (tabsShownIn(s, windowId) || switchOn("sidebarSlide")) &&
     tabLayoutOf(s, w.id) === "sidebar"
   );
@@ -42,7 +50,7 @@ export function openingLightsCenter(s: BrowserState, windowId: string): LightsPl
     zeroWhenTabsHidden: s.settings.pageFrameZeroWhenTabsHidden,
     tabsHidden: autoHidesTabsIn(s, windowId),
   });
-  const base = s.settings.addressBar === "sidebar" ? ARC_LIGHTS_CENTER : toolbarLightsCenter(s.settings.compactToolbar, frame);
+  const base = wantsSidebarAddressBar(s, w.id) ? ARC_LIGHTS_CENTER : toolbarLightsCenter(s.settings.compactToolbar, frame);
   return sidebarLightsCenter(sidebarSideOf(s, w.id) === "right", width, open ? 0 : width, 0, base);
 }
 

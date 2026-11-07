@@ -5,7 +5,7 @@ import {
   type SiteSettingValue,
   type SiteSettings,
 } from "../../state/site/siteSettings";
-import { displayHost } from "@ardia/core";
+import { displayHost, hostOf } from "@ardia/core";
 import { showMenu } from "../../state/app/system";
 import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
@@ -69,6 +69,7 @@ function SiteControlsPanel({
   const showFullUrl = useSettings((s) => s.showFullUrl);
   const unreadCounts = useSettings((s) => s.showUnreadCounts);
   const unreadHidden = useSettings((s) => isUnreadSiteHidden(s, tab?.url ?? ""));
+  const developerModeSites = useSettings((s) => s.developerModeSites);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [featured, setFeatured] = useState<Set<SiteSettingType> | null>(null);
   const [blocker, setBlocker] = useState<Blocker | null>(null);
@@ -150,6 +151,12 @@ function SiteControlsPanel({
       const engine = choice === "webkit" ? "webkit" : "chromium";
       void openPageIn(tabId, engine, { rule: engine });
     }
+  };
+  const siteHost = hostOf(url);
+  const developerMode = developerModeSites.includes(siteHost);
+  const setDeveloperMode = (on: boolean) => {
+    close();
+    updateSettings({ developerModeSites: on ? [...developerModeSites, siteHost] : developerModeSites.filter((h) => h !== siteHost) });
   };
   const toggle = (section: Exclude<Expanded, null>) => setExpanded((e) => (e === section ? null : section));
 
@@ -292,6 +299,13 @@ function SiteControlsPanel({
               ) : (
                 <MenuRow icon="app.badge" title={ALL_UNREAD_TITLE} detail="All sites" accessory={<Toggle look="panel" value={false} onChange={showUnreadCounts} />} />
               )
+            ) : null}
+            {origin ? (
+              <MenuRow
+                icon="hammer"
+                title="Developer Mode"
+                accessory={<Toggle look="panel" value={developerMode} onChange={setDeveloperMode} />}
+              />
             ) : null}
             <MenuRow
               icon="text.alignleft"
