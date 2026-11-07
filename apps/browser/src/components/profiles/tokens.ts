@@ -11,8 +11,8 @@ export const SHARE_ROW_HEIGHT = 32;
 export const profileSwitcher = {
   height: 41,
   band: 28,
-  dotCell: 12,
-  dot: 6,
+  dotCell: 18,
+  dot: 8,
   iconCell: 26,
   icon: 11,
   dotTooltipLift: 18.25,
