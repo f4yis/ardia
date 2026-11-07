@@ -5844,6 +5844,7 @@ try {
       "com.8bit.bitwarden": "/Applications/Bitwarden.app/Contents/MacOS/desktop_proxy",
       "org.keepassxc.keepassxc_browser": "/Applications/KeePassXC.app/Contents/MacOS/keepassxc-proxy",
       "me.proton.pass.nm": "/Applications/Proton Pass.app/Contents/Resources/assets/proton_pass_nm_host",
+      "com.ardia.apple_passwords": join(app, "Contents/Helpers/ardia-apple-passwords"),
     };
     const expected = Object.keys(known).filter((name) => existsSync(known[name])).sort();
     const managed = JSON.parse(existsSync(join(dir, ".ardia-managed.json")) ? readFileSync(join(dir, ".ardia-managed.json"), "utf8") : "[]");
