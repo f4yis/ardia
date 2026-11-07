@@ -219,7 +219,7 @@ export const ToolbarUrlField = memo(function ToolbarUrlField({ tab, palette, win
       </ContextMenuArea>
       <FieldButtons tab={tab} palette={palette} onFocus={onFocus} popover={popover} toggleSiteControls={toggleSiteControls}>
         {field.developerMode && <DeveloperButtons tab={tab} palette={palette} onFocus={onFocus} />}
-        {hovered && (
+        {(hovered || field.developerMode) && (
           <>
             <PageButton tab={tab} palette={palette} windowId={windowId} />
             {!inSplit && (
