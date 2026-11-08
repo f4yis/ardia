@@ -110,7 +110,7 @@ export function TopStripPeek({ windowWidth, enabled }: { windowWidth: number; en
   const theme = useTheme();
   const windowId = useWindowId();
   const downloadsOpen = useWindowUiOf(windowId, (u) => !!u?.downloadsOpen);
-  const { slide, live, show, hide, recheck, cancelPending } = usePeek(enabled, false, () => downloadsOpenIn(windowId), undefined, noteTabStripPeek);
+  const { slide, live, leaving, show, hide, recheck, cancelPending } = usePeek(enabled, false, () => downloadsOpenIn(windowId), undefined, noteTabStripPeek);
   useEffect(() => {
     if (!downloadsOpen) recheck();
   }, [downloadsOpen]);
@@ -139,7 +139,7 @@ export function TopStripPeek({ windowWidth, enabled }: { windowWidth: number; en
       ) : null}
       <Animated.View
         pointerEvents={live ? "auto" : "none"}
-        onMouseEnter={live ? show : undefined}
+        onMouseEnter={live && !leaving ? show : undefined}
         onMouseLeave={live ? leavePanel : undefined}
         style={{
           position: "absolute",
