@@ -29,6 +29,28 @@ import { UpdatesSection } from "./UpdatesSection";
 
 const APP = "Ardia";
 
+const MENU_BAR_DELAYS = [0, 0.1, 0.25, 0.5, 1];
+
+function FullScreenSection() {
+  const delay = useSettings((s) => s.fullScreenMenuBarDelay);
+  const delays = MENU_BAR_DELAYS.includes(delay) ? MENU_BAR_DELAYS : [...MENU_BAR_DELAYS, delay].sort((a, b) => a - b);
+  return (
+    <>
+      <SectionHeader title="Full screen" />
+      <Group>
+        <Row anchor="general.fullScreenMenuBarDelay">
+          <PopUp
+            value={String(delay)}
+            options={delays.map((d) => ({ value: String(d), title: d === 0 ? "Right away" : `After ${d} s` }))}
+            onChange={(v) => updateSettings({ fullScreenMenuBarDelay: Number(v) })}
+            minWidth={190}
+          />
+        </Row>
+      </Group>
+    </>
+  );
+}
+
 export function GeneralPane({ detail }: SettingsPlace) {
   if (detail === SETTINGS_DETAIL.filterLists) return <FilterListsPage />;
   if (detail === SETTINGS_DETAIL.crashDetails)
@@ -41,6 +63,7 @@ export function GeneralPane({ detail }: SettingsPlace) {
     <View>
       <DefaultBrowserSection />
       <StartupSection />
+      <FullScreenSection />
       <DownloadsSection />
       {PLATFORM_FEATURES.contentBlocker && <ContentBlockingSection />}
       {PLATFORM_FEATURES.sync && <SyncSection />}

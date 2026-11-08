@@ -119,6 +119,7 @@ export const SETTING_SPECS = {
   autoPictureInPicture: flag(true, SYNCED),
   playingNowAcrossProfiles: flag(false, SYNCED),
   blockAutoplayEverywhere: flag(false, SYNCED),
+  fullScreenMenuBarDelay: shaped<number>(0.1, (v) => typeof v === "number" && v >= 0 && v <= 2, { type: "number", minimum: 0, maximum: 2 }, SYNCED),
   blockNotificationRequests: flag(false, SYNCED),
   videoUpscaling: flag(true, SYNCED),
   sidebarWidth: width(DEFAULT_SIDEBAR_WIDTH),

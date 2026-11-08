@@ -3,6 +3,7 @@ import { setAutoPictureInPicture, setPlaybackSpeeds, setVideoUpscaling } from ".
 import { setCommandScrollZoom } from "../../platform/siteSettings";
 import { setPopupsOpenAsTabs } from "../../platform/pageOptions";
 import { setBlockAutoplayEverywhere } from "../../platform/pageOptions";
+import { setFullScreenMenuBarDelay } from "../../platform/windows";
 import { useBrowser } from "../browser/store";
 import type { Settings } from "./settings";
 import { startInterfaceScale } from "./interfaceScaleSync";
@@ -20,6 +21,7 @@ const NATIVE_SETTINGS: Mirror[] = [
   mirror("popupsOpenAsTabs", setPopupsOpenAsTabs),
   mirror("blockAutoplayEverywhere", setBlockAutoplayEverywhere),
   mirror("pressMotion", setPressMotion),
+  mirror("fullScreenMenuBarDelay", setFullScreenMenuBarDelay),
 ];
 
 export function startNativeSettings() {

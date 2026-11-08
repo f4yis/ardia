@@ -27,6 +27,7 @@ export const setTrafficLightsCenter = (id: string, center: LightsPlace | null) =
 export const watchSidebarEdge = (id: string, on: boolean, hold = 0, right = false, whilePressed = false) => void Windows.watchSidebarEdge(id, on, hold, right, whilePressed);
 export const windowFrame = (id: string) => Windows.windowFrame(id);
 export const frameCornerRadius = (id: string) => Windows.frameCornerRadius(id);
+export const setFullScreenMenuBarDelay = (seconds: number) => call("windows.setFullScreenMenuBarDelay", { seconds });
 export const windowIds = () => Windows.windowIds();
 const geometryCall = <T>(run: () => Promise<T>): Promise<T | null> => (PLATFORM_FEATURES.windowGeometry ? run() : Promise.resolve(null));
 export const windowGeometry = (id: string) => geometryCall(() => Windows.windowGeometry(id));

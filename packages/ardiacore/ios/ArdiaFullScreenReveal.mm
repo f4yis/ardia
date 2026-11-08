@@ -274,7 +274,7 @@ namespace {
 
 const void *kHoldsMenuBarKey = &kHoldsMenuBarKey;
 
-constexpr NSTimeInterval kMenuBarDwell = 0.5;
+NSTimeInterval gMenuBarDelay = 0.1;
 
 constexpr CGFloat kEdgeReach = 2;
 
@@ -320,7 +320,7 @@ CGFloat BarDistance(NSWindow *window) {
 }
 
 BOOL HoldsMenuBar(NSWindow *window) {
-  return window && objc_getAssociatedObject(window, kHoldsMenuBarKey) && (window.styleMask & NSWindowStyleMaskFullScreen) && NSApp.isActive &&
+  return gMenuBarDelay > 0 && window && objc_getAssociatedObject(window, kHoldsMenuBarKey) && (window.styleMask & NSWindowStyleMaskFullScreen) && NSApp.isActive &&
          (NSApp.presentationOptions & NSApplicationPresentationFullScreen);
 }
 
@@ -375,7 +375,7 @@ BOOL HoldsMenuBar(NSWindow *window) {
   if (distance > kEdgeReach) return [self stopDwell];
   if (_dwell) return;
   __weak NSWindow *weakWindow = window;
-  _dwell = [NSTimer scheduledTimerWithTimeInterval:kMenuBarDwell
+  _dwell = [NSTimer scheduledTimerWithTimeInterval:gMenuBarDelay
                                            repeats:NO
                                              block:^(NSTimer *) {
                                                self->_dwell = nil;
@@ -403,11 +403,22 @@ void HoldFullScreenMenuBar(NSWindow *window) {
     return ^NSApplicationPresentationOptions(id delegate, NSWindow *w, NSApplicationPresentationOptions proposed) {
       const NSApplicationPresentationOptions options =
           ((NSApplicationPresentationOptions(*)(id, SEL, NSWindow *, NSApplicationPresentationOptions))standard)(delegate, sel, w, proposed);
-      if (!objc_getAssociatedObject(w, kHoldsMenuBarKey)) return options;
       gDockEdge = DockEdge();
+      if (gMenuBarDelay <= 0 || !objc_getAssociatedObject(w, kHoldsMenuBarKey)) return options;
       return WithBars(options, kHeldBars);
     };
   });
+}
+
+}
+
+namespace ardia_window {
+
+void SetFullScreenMenuBarDelay(NSTimeInterval seconds) {
+  gMenuBarDelay = std::isfinite(seconds) ? std::clamp(seconds, 0.0, 2.0) : 0;
+  if (gMenuBarDelay <= 0 && (NSApp.presentationOptions & NSApplicationPresentationFullScreen) &&
+      (NSApp.presentationOptions & NSApplicationPresentationHideMenuBar))
+    SetBars(kReleasedBars);
 }
 
 }
