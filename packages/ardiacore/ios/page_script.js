@@ -388,9 +388,10 @@
   let bubbleSeq = 0;
   let bubbleSheet = null;
   const BUBBLE_CSS = `
-:host{position:fixed!important;position-visibility:anchors-visible!important;inset:auto!important;top:anchor(top)!important;left:anchor(left)!important;margin:8px!important;padding:0!important;border:0!important;background:none!important;overflow:visible!important;width:auto!important;height:auto!important}
-div{display:flex;align-items:center;height:22px;padding:0 2px;border-radius:7px;background:rgba(28,28,28,.72);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff;font:600 12px/1 -apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums;opacity:.6;transition:opacity .12s;user-select:none;-webkit-user-select:none;cursor:default}
-div:hover{opacity:1}
+:host{position:fixed!important;position-visibility:anchors-visible!important;inset:auto!important;top:anchor(top)!important;left:anchor(left)!important;margin:8px!important;padding:0!important;border:0!important;background:none!important;overflow:visible!important;width:auto!important;height:auto!important;pointer-events:none!important}
+div{display:flex;align-items:center;height:22px;padding:0 2px;border-radius:7px;background:rgba(28,28,28,.72);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff;font:600 12px/1 -apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums;opacity:0;pointer-events:none;transition:opacity .2s;user-select:none;-webkit-user-select:none;cursor:default}
+div.shown{opacity:.6;pointer-events:auto}
+div.shown:hover{opacity:1}
 div[hidden]{display:none}
 span{padding:0 6px}
 button{all:unset;display:none;width:20px;height:18px;border-radius:5px;text-align:center;line-height:18px;font-size:14px}
@@ -401,6 +402,7 @@ button:hover{background:rgba(255,255,255,.18)}`;
     if (!bubble) return;
     bubbles.delete(v);
     bubble.observer.disconnect();
+    clearTimeout(bubble.timer);
     bubble.host.remove();
     v.style.removeProperty("anchor-name");
   };
@@ -438,7 +440,13 @@ button:hover{background:rgba(255,255,255,.18)}`;
         pill.hidden = v.offsetWidth < 160 || v.offsetHeight < 90;
       }),
     );
-    bubbles.set(v, { host, label, observer });
+    const bubble = { host, pill, label, observer, timer: 0, hovered: false };
+    pill.addEventListener("pointerenter", () => (bubble.hovered = true));
+    pill.addEventListener("pointerleave", () => {
+      bubble.hovered = false;
+      wakeBubble(bubble);
+    });
+    bubbles.set(v, bubble);
     label.textContent = speedText(v.playbackRate);
     v.style.setProperty("anchor-name", anchor);
     host.popover = "manual";
@@ -446,12 +454,29 @@ button:hover{background:rgba(255,255,255,.18)}`;
     host.showPopover();
     observer.observe(v);
   };
+  const wakeBubble = (bubble) => {
+    bubble.pill.classList.add("shown");
+    clearTimeout(bubble.timer);
+    bubble.timer = setTimeout(() => bubble.hovered || bubble.pill.classList.remove("shown"), 2000);
+  };
   const noteBubble = (m, type) => {
     if (type === "ratechange") {
       const bubble = bubbles.get(m);
-      if (bubble) bubble.label.textContent = speedText(m.playbackRate);
+      if (!bubble) return;
+      bubble.label.textContent = speedText(m.playbackRate);
+      wakeBubble(bubble);
     } else if (type === "loadedmetadata" || type === "play") showBubble(m);
   };
+  addEventListener(
+    "pointermove",
+    guard((e) => {
+      for (const [v, bubble] of bubbles) {
+        const r = v.getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) wakeBubble(bubble);
+      }
+    }),
+    { capture: true, passive: true },
+  );
   document.addEventListener(
     "fullscreenchange",
     guard(() => {
