@@ -38,6 +38,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (BOOL)windowShouldClose:(NSWindow *)window;
 + (BOOL)windowFullScreenIsForPage:(NSWindow *)window;
 + (BOOL)userSeesWindow:(nullable NSWindow *)window NS_SWIFT_NAME(userSees(_:));
++ (void)setFullScreenMenuBarDelay:(NSTimeInterval)seconds;
 
 @end
 

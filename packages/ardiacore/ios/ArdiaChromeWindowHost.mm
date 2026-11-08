@@ -137,6 +137,10 @@ NSView *ArdiaWindowRootView(NSWindow *window) {
   else [window close];
 }
 
++ (void)setFullScreenMenuBarDelay:(NSTimeInterval)seconds {
+  SetFullScreenMenuBarDelay(seconds);
+}
+
 + (BOOL)windowFullScreenIsForPage:(NSWindow *)window {
   return [objc_getAssociatedObject(window, kWindowFullScreenKey) enteredForPage];
 }

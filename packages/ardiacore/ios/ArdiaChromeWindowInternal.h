@@ -61,6 +61,7 @@ void ApplyFullScreenReveal(NSWindow *window);
 void SetFullScreenRevealAmount(NSWindow *window, double amount);
 NSDictionary *FullScreenRevealState(NSWindow *window);
 void HoldFullScreenMenuBar(NSWindow *window);
+void SetFullScreenMenuBarDelay(NSTimeInterval seconds);
 
 NSMenuItem *ReservedMenuItemForEvent(NSEvent *event);
 bool IsReservedKey(NSEvent *event);

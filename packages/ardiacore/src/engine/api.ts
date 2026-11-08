@@ -64,6 +64,7 @@ export type EngineCalls = {
 
   "windows.list": [{}, ChromeWindowState[]];
   "windows.dev": [{ window: number; action: string }, string];
+  "windows.setFullScreenMenuBarDelay": [{ seconds: number }, null];
 
   "downloads.cancel": [{ id: string }, null];
   "downloads.pause": [{ id: string }, null];

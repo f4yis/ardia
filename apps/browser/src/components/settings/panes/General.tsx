@@ -21,6 +21,28 @@ import { UI_LOCALE } from "../../../lib/uiLocale";
 
 const APP = "Ardia";
 
+const MENU_BAR_DELAYS = [0, 0.1, 0.25, 0.5, 1];
+
+function FullScreenSection() {
+  const delay = useSettings((s) => s.fullScreenMenuBarDelay);
+  const delays = MENU_BAR_DELAYS.includes(delay) ? MENU_BAR_DELAYS : [...MENU_BAR_DELAYS, delay].sort((a, b) => a - b);
+  return (
+    <>
+      <SectionHeader title="Full screen" />
+      <Group>
+        <Row anchor="general.fullScreenMenuBarDelay">
+          <PopUp
+            value={String(delay)}
+            options={delays.map((d) => ({ value: String(d), title: d === 0 ? "Right away" : `After ${d} s` }))}
+            onChange={(v) => updateSettings({ fullScreenMenuBarDelay: Number(v) })}
+            minWidth={190}
+          />
+        </Row>
+      </Group>
+    </>
+  );
+}
+
 export function GeneralPane() {
   const openLinksInLittleArdia = useSettings((s) => s.openLinksInLittleArdia);
   const restoreSession = useSettings((s) => s.restoreSession);
@@ -85,6 +107,8 @@ export function GeneralPane() {
           />
         </Row>
       </Group>
+
+      <FullScreenSection />
 
       <DownloadsSection />
 

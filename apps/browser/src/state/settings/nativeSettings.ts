@@ -1,6 +1,7 @@
 import { setAppearance, setThinScrollBars } from "../../platform/app";
 import { setAutoPictureInPicture, setPlaybackSpeeds, setVideoUpscaling } from "../../platform/media";
 import { setCommandScrollZoom } from "../../platform/siteSettings";
+import { setFullScreenMenuBarDelay } from "../../platform/windows";
 import { useBrowser } from "../browser/store";
 import type { Settings } from "./settings";
 
@@ -15,6 +16,7 @@ const NATIVE_SETTINGS: Mirror[] = [
   mirror("videoUpscaling", setVideoUpscaling),
   mirror("playbackSpeeds", setPlaybackSpeeds),
   mirror("commandScrollZoom", setCommandScrollZoom),
+  mirror("fullScreenMenuBarDelay", setFullScreenMenuBarDelay),
 ];
 
 export function startNativeSettings() {

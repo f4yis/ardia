@@ -345,7 +345,7 @@ const fakeModules = {
       discardOffered: async (adoptId: string) => (discardedOffers.push(adoptId), true),
     },
   )),
-  ArdiaWindows: domain("windows", { list: () => [], dev: () => "" }),
+  ArdiaWindows: domain("windows", { list: () => [], dev: () => "", setFullScreenMenuBarDelay: () => null }),
   ArdiaDownloads: domain("downloads", {
     cancel: ({ id }) => (cancelledDownloads.push(id), null),
     pause: () => null,

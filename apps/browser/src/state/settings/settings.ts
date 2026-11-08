@@ -109,6 +109,7 @@ export const SETTING_SPECS = {
   developerModeSites: shaped<string[]>([], isStringList, STRING_LIST, SYNCED),
   neverTranslateSites: shaped<Record<string, string[]>>({}, (v) => isRecordOf(v, isStringList), recordOf(STRING_LIST)),
   autoPictureInPicture: flag(true, SYNCED),
+  fullScreenMenuBarDelay: shaped<number>(0.1, (v) => typeof v === "number" && v >= 0 && v <= 2, { type: "number", minimum: 0, maximum: 2 }, SYNCED),
   commandScrollZoom: flag(true, SYNCED),
   videoUpscaling: flag(true, SYNCED),
   sidebarMediaControls: flag(true, SYNCED),
