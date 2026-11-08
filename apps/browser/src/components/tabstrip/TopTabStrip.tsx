@@ -120,7 +120,7 @@ function StripDropHighlight({ left, right }: { left: number; right: number }) {
 export function TopStripPeek({ windowWidth, enabled }: { windowWidth: number; enabled: boolean }) {
   const theme = useTheme();
   const windowId = useWindowId();
-  const { slide, live, show, hide, recheck, cancelPending } = usePeek(enabled, false, () => topStripPeekHeld(windowId), undefined, noteTabStripPeek);
+  const { slide, live, leaving, show, hide, recheck, cancelPending } = usePeek(enabled, false, () => topStripPeekHeld(windowId), undefined, noteTabStripPeek);
   const latestRecheck = useRef(recheck);
   latestRecheck.current = recheck;
   useEffect(() => (live ? watchHolds("topStrip", () => latestRecheck.current()) : undefined), [live]);
@@ -150,7 +150,7 @@ export function TopStripPeek({ windowWidth, enabled }: { windowWidth: number; en
       ) : null}
       <Animated.View
         pointerEvents={live ? "auto" : "none"}
-        onMouseEnter={live ? show : undefined}
+        onMouseEnter={live && !leaving ? show : undefined}
         onMouseLeave={live ? leavePanel : undefined}
         style={{
           position: "absolute",
