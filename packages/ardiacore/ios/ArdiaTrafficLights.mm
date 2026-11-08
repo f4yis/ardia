@@ -421,6 +421,7 @@ void ConfigureWindow(NSWindow *window) {
   WindowCornerRadius(window);
   WatchFullScreenLights(window);
   SuppressFullScreenTitlebar(window);
+  HoldFullScreenMenuBar(window);
 }
 
 }

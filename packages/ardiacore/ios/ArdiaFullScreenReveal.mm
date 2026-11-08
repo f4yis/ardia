@@ -269,3 +269,145 @@ NSDictionary *FullScreenRevealState(NSWindow *window) {
 }
 
 }
+
+namespace {
+
+const void *kHoldsMenuBarKey = &kHoldsMenuBarKey;
+
+constexpr NSTimeInterval kMenuBarDwell = 0.5;
+
+constexpr CGFloat kEdgeReach = 2;
+
+constexpr CGFloat kAwayFromBars = 100;
+
+constexpr NSApplicationPresentationOptions kHeldBars = NSApplicationPresentationHideMenuBar | NSApplicationPresentationHideDock;
+
+constexpr NSApplicationPresentationOptions kReleasedBars = NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationAutoHideDock;
+
+NSRectEdge gDockEdge = NSRectEdgeMinY;
+
+NSApplicationPresentationOptions WithBars(NSApplicationPresentationOptions options, NSApplicationPresentationOptions bars) {
+  return (options & ~(kHeldBars | kReleasedBars)) | bars;
+}
+
+void SetBars(NSApplicationPresentationOptions bars) {
+  @try {
+    NSApp.presentationOptions = WithBars(NSApp.presentationOptions, bars);
+  } @catch (NSException *) {
+  }
+}
+
+NSRectEdge DockEdge() {
+  id orientation = (__bridge_transfer id)CFPreferencesCopyAppValue(CFSTR("orientation"), CFSTR("com.apple.dock"));
+  if ([orientation isEqual:@"left"]) return NSRectEdgeMinX;
+  if ([orientation isEqual:@"right"]) return NSRectEdgeMaxX;
+  return NSRectEdgeMinY;
+}
+
+CGFloat EdgeDistance(NSPoint point, NSRect screen, NSRectEdge edge) {
+  switch (edge) {
+    case NSRectEdgeMinX: return point.x - NSMinX(screen);
+    case NSRectEdgeMaxX: return NSMaxX(screen) - point.x;
+    case NSRectEdgeMinY: return point.y - NSMinY(screen);
+    default: return NSMaxY(screen) - point.y;
+  }
+}
+
+CGFloat BarDistance(NSWindow *window) {
+  const NSRect screen = ScreenOf(window).frame;
+  const NSPoint pointer = NSEvent.mouseLocation;
+  return std::min(EdgeDistance(pointer, screen, NSRectEdgeMaxY), EdgeDistance(pointer, screen, gDockEdge));
+}
+
+BOOL HoldsMenuBar(NSWindow *window) {
+  return window && objc_getAssociatedObject(window, kHoldsMenuBarKey) && (window.styleMask & NSWindowStyleMaskFullScreen) && NSApp.isActive &&
+         (NSApp.presentationOptions & NSApplicationPresentationFullScreen);
+}
+
+}
+
+@interface ArdiaMenuBarHold : NSObject
+@end
+
+@implementation ArdiaMenuBarHold {
+  id _monitor;
+  NSTimer *_dwell;
+  BOOL _menuTracking;
+}
+
++ (instancetype)shared {
+  static ArdiaMenuBarHold *hold = [ArdiaMenuBarHold new];
+  return hold;
+}
+
+- (instancetype)init {
+  if (!(self = [super init])) return nil;
+  __weak ArdiaMenuBarHold *weakSelf = self;
+  _monitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMouseMoved
+                                                   handler:^NSEvent *(NSEvent *event) {
+                                                     [weakSelf pointerMovedIn:event.window ?: NSApp.keyWindow];
+                                                     return event;
+                                                   }];
+  NSNotificationCenter *center = NSNotificationCenter.defaultCenter;
+  [center addObserverForName:NSMenuDidBeginTrackingNotification object:nil queue:nil usingBlock:^(NSNotification *) {
+    if (ArdiaMenuBarHold *hold = weakSelf) hold->_menuTracking = YES;
+  }];
+  [center addObserverForName:NSMenuDidEndTrackingNotification object:nil queue:nil usingBlock:^(NSNotification *) {
+    if (ArdiaMenuBarHold *hold = weakSelf) hold->_menuTracking = NO;
+  }];
+  return self;
+}
+
+- (void)stopDwell {
+  [_dwell invalidate];
+  _dwell = nil;
+}
+
+- (void)pointerMovedIn:(NSWindow *)window {
+  if (!HoldsMenuBar(window)) return [self stopDwell];
+  const NSApplicationPresentationOptions options = NSApp.presentationOptions;
+  const CGFloat distance = BarDistance(window);
+  if (options & NSApplicationPresentationAutoHideMenuBar) {
+    [self stopDwell];
+    if (distance > kAwayFromBars && !_menuTracking) SetBars(kHeldBars);
+    return;
+  }
+  if (distance > kEdgeReach) return [self stopDwell];
+  if (_dwell) return;
+  __weak NSWindow *weakWindow = window;
+  _dwell = [NSTimer scheduledTimerWithTimeInterval:kMenuBarDwell
+                                           repeats:NO
+                                             block:^(NSTimer *) {
+                                               self->_dwell = nil;
+                                               NSWindow *w = weakWindow;
+                                               if (HoldsMenuBar(w) && (NSApp.presentationOptions & NSApplicationPresentationHideMenuBar) &&
+                                                   BarDistance(w) <= kEdgeReach)
+                                                 SetBars(kReleasedBars);
+                                             }];
+}
+
+@end
+
+namespace ardia_window {
+
+void HoldFullScreenMenuBar(NSWindow *window) {
+  if (!window) return;
+  objc_setAssociatedObject(window, kHoldsMenuBarKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  [ArdiaMenuBarHold shared];
+  static NSMutableSet<Class> *wrapped = [NSMutableSet set];
+  Class delegateClass = object_getClass(window.delegate);
+  if (!delegateClass || [wrapped containsObject:delegateClass]) return;
+  [wrapped addObject:delegateClass];
+  const SEL sel = @selector(window:willUseFullScreenPresentationOptions:);
+  ReplaceMethod(delegateClass, sel, ^id(IMP standard) {
+    return ^NSApplicationPresentationOptions(id delegate, NSWindow *w, NSApplicationPresentationOptions proposed) {
+      const NSApplicationPresentationOptions options =
+          ((NSApplicationPresentationOptions(*)(id, SEL, NSWindow *, NSApplicationPresentationOptions))standard)(delegate, sel, w, proposed);
+      if (!objc_getAssociatedObject(w, kHoldsMenuBarKey)) return options;
+      gDockEdge = DockEdge();
+      return WithBars(options, kHeldBars);
+    };
+  });
+}
+
+}
