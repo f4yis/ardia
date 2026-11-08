@@ -199,3 +199,19 @@ test("a session that ends while its tab is in the background stops being left pa
   media.setNowPlaying(b, null);
   assert.equal(M().leftPaused[b], undefined);
 });
+
+test("a playback speed is kept for its own site only, 1× forgets it, a private tab saves nothing", () => {
+  S().hydrate({});
+  const w = S().createWindow({ url: "https://www.youtube.com/watch?v=1" });
+  const yt = S().windows[w].activeTabId ?? Object.keys(S().tabs)[0];
+  const other = S().newTab(w, { url: "https://vimeo.com/2", background: true });
+  media.notePlaybackSpeed(yt, 1.5);
+  assert.deepEqual(S().settings.playbackSpeeds, { "youtube.com": 1.5 });
+  media.notePlaybackSpeed(other, 0.8);
+  assert.deepEqual(S().settings.playbackSpeeds, { "youtube.com": 1.5, "vimeo.com": 0.8 });
+  media.notePlaybackSpeed(yt, 1);
+  assert.deepEqual(S().settings.playbackSpeeds, { "vimeo.com": 0.8 });
+  S().updateTab(other, { profileId: "incognito:w1@default" });
+  media.notePlaybackSpeed(other, 2);
+  assert.deepEqual(S().settings.playbackSpeeds, { "vimeo.com": 0.8 });
+});

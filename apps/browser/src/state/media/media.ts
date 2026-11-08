@@ -6,7 +6,8 @@ import { useShallow } from "zustand/react/shallow";
 import { webviews } from "../../platform/webviews";
 import { useBrowser } from "../browser/store";
 import type { BrowserState } from "../browser/store";
-import { activeTabId } from "../browser/model";
+import { activeTabId, isIncognitoProfile } from "../browser/model";
+import { showToast } from "../app/toasts";
 import { peekTabId } from "../peek/peek";
 import { splitOf, splitTabIdsOf } from "../splits/splits";
 import { hostOf } from "@ardia/core";
@@ -49,6 +50,19 @@ export function setPictureInPictureState(tabId: string, { kind, active, fullScre
     if (!active) delete pip[tabId];
     return { pipOpen, pip };
   });
+}
+
+export function notePlaybackSpeed(tabId: string, speed: number) {
+  const s = useBrowser.getState();
+  const tab = s.tabs[tabId];
+  if (!tab) return;
+  showToast(tab.windowId, `Speed ${speed.toFixed(1)}×`, undefined, { icon: "gauge.with.needle", key: "playbackSpeed" });
+  const host = hostOf(tab.url);
+  if (!host || isIncognitoProfile(tab.profileId)) return;
+  const playbackSpeeds = { ...s.settings.playbackSpeeds };
+  if (speed === 1) delete playbackSpeeds[host];
+  else playbackSpeeds[host] = speed;
+  s.updateSettings({ playbackSpeeds });
 }
 
 export function setNowPlaying(tabId: string, state: NowPlaying | null) {

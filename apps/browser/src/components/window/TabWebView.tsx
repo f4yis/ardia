@@ -33,7 +33,7 @@ import { copyLinkToSelection, searchSelection, setPageSelection } from "../../st
 import { shareFromPage } from "../../state/site/share";
 import { useAutoPictureInPicture } from "../../state/media/pip";
 import { requestDisplayMedia } from "../../state/media/screenShare";
-import { setNowPlaying, setPictureInPictureState } from "../../state/media/media";
+import { notePlaybackSpeed, setNowPlaying, setPictureInPictureState } from "../../state/media/media";
 import { noteScroll } from "../../state/windows/toolbarAutoHide";
 import { closeWebNotification, showWebNotification } from "../../state/site/webNotifications";
 import { escapePressed } from "../../state/windows/unclaimedEscape";
@@ -228,6 +228,7 @@ function EngineWebView({ tabId, visible, warm, peekOf, engine }: TabWebViewProps
         if (!muted && isTabSilenced(tabId)) void webviews.get(tabId)?.setMuted(true);
       }}
       onNowPlaying={(state) => setNowPlaying(tabId, state)}
+      onPlaybackSpeed={(speed) => notePlaybackSpeed(tabId, speed)}
       onPictureInPicture={(state) => setPictureInPictureState(tabId, state)}
       onAutoPictureInPictureKept={noteAutoPictureInPictureKept}
       onMediaFault={noteWebKitMediaFault}

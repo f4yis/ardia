@@ -1,5 +1,5 @@
 import { setAppearance, setThinScrollBars } from "../../platform/app";
-import { setAutoPictureInPicture, setVideoUpscaling } from "../../platform/media";
+import { setAutoPictureInPicture, setPlaybackSpeeds, setVideoUpscaling } from "../../platform/media";
 import { setCommandScrollZoom } from "../../platform/siteSettings";
 import { useBrowser } from "../browser/store";
 import type { Settings } from "./settings";
@@ -13,6 +13,7 @@ const NATIVE_SETTINGS: Mirror[] = [
   mirror("pageScrollBars", (bars) => setThinScrollBars(bars === "thin")),
   mirror("autoPictureInPicture", setAutoPictureInPicture),
   mirror("videoUpscaling", setVideoUpscaling),
+  mirror("playbackSpeeds", setPlaybackSpeeds),
   mirror("commandScrollZoom", setCommandScrollZoom),
 ];
 

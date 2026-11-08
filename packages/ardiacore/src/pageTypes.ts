@@ -220,6 +220,7 @@ export type WebViewProps = ViewProps & {
   onPreferredSize?: (size: { width: number; height: number }) => void;
   onTransferRefused?: (fromWindowId: string) => void;
   onAppBadge?: (badge: AppBadge) => void;
+  onPlaybackSpeed?: (speed: number) => void;
 };
 
 export type WebViewHandle = {

@@ -217,9 +217,18 @@
   let pipTrace = false;
   let pipHandlerSet = null;
   const playingMedia = new Set();
+  let savedSpeed = null;
+  const speedSource = new WeakMap();
+  const nextSpeed = (rate, step) => Math.min(16, Math.max(0.1, Math.round((rate + step) * 10) / 10));
+  const keepSpeed = (m, settle) => {
+    if (savedSpeed === null || speedSource.get(m) === m.currentSrc) return;
+    if (m.playbackRate !== savedSpeed) m.playbackRate = savedSpeed;
+    if (settle) speedSource.set(m, m.currentSrc);
+  };
   const onMediaEvent = (e) => {
     const m = e.target;
     if (!(m instanceof HTMLMediaElement)) return;
+    if (e.type === "loadedmetadata" || e.type === "play" || e.type === "playing") guard(keepSpeed)(m, e.type === "playing");
     if (e.type === "play" || e.type === "playing") playingMedia.add(m);
     else if (e.type === "pause" || e.type === "ended" || e.type === "emptied") playingMedia.delete(m);
     if (blockAutoplay && e.type === "play" && !(navigator.userActivation && navigator.userActivation.hasBeenActive)) {
@@ -340,6 +349,33 @@
     }
     reportNowPlaying();
   };
+  const speedStep = (e) => {
+    const key = typeof e.key === "string" ? e.key.toLowerCase() : "";
+    if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || e.isComposing) return 0;
+    return key === "d" ? 0.1 : key === "s" ? -0.1 : 0;
+  };
+  const typingIn = (el) => !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName || ""));
+  addEventListener(
+    "keydown",
+    guard((e) => {
+      const step = speedStep(e);
+      if (!step || typingIn(e.composedPath()[0])) return;
+      const media = [...document.querySelectorAll("video,audio")];
+      if (active && !media.includes(active)) media.push(active);
+      const videos = media.filter((m) => m.tagName === "VIDEO");
+      const lead = videos.find(isPlaying) || videos[0];
+      if (!lead) return;
+      savedSpeed = nextSpeed(lead.playbackRate, step);
+      for (const m of media) {
+        m.playbackRate = savedSpeed;
+        speedSource.set(m, m.currentSrc);
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      send("playbackSpeed", { speed: savedSpeed });
+    }),
+    true,
+  );
 
   const typedByUser = new WeakSet();
   let revealedField = null;
@@ -1108,6 +1144,10 @@
     if (config.displayMediaPicker) installDisplayMedia();
     else restoreDisplayMedia();
     if (config.fieldTiming) setFieldTiming(true);
+    if (typeof config.playbackSpeed === "number" && savedSpeed === null) {
+      savedSpeed = config.playbackSpeed;
+      for (const m of new Set([...playingMedia, ...document.querySelectorAll("video, audio")])) guard(keepSpeed)(m, isPlaying(m));
+    }
     if (typeof config.selectionPopover === "boolean" && handlers.selectionPopover) handlers.selectionPopover(config.selectionPopover);
   };
   send("hello", { top: isTop, url: location.href });

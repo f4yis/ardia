@@ -179,6 +179,7 @@ export type EngineCalls = {
   "webView.setPeekOtherSiteTabs": [{ tabIds: string[] }, null];
   "webView.setSelectionPopover": [{ enabled: boolean }, null];
   "webView.setCommandScrollZoom": [{ enabled: boolean }, null];
+  "webView.setPlaybackSpeeds": [{ speeds: Record<string, number> }, null];
   "webView.setLittleArdiaOpensNewTabLinks": [{ enabled: boolean }, null];
   "webView.setAutoPictureInPicture": [{ enabled: boolean }, null];
   "webView.setVideoUpscaling": [{ enabled: boolean }, null];

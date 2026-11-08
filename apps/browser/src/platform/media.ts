@@ -21,6 +21,7 @@ export const requestScreenRecording = () => call("media.requestScreenRecording")
 export const setDisplayMediaPicker = (enabled: boolean) => call("webView.setDisplayMediaPicker", { enabled });
 export const setAutoPictureInPicture = (enabled: boolean) => call("webView.setAutoPictureInPicture", { enabled });
 export const setVideoUpscaling = (enabled: boolean) => call("webView.setVideoUpscaling", { enabled });
+export const setPlaybackSpeeds = (speeds: Record<string, number>) => call("webView.setPlaybackSpeeds", { speeds });
 
 export const onCastDialog = (listener: (e: CastDialog) => void) => on("media.castDialog", listener);
 export const onCastRoutes = (listener: (e: { profile: string; routes: CastRoute[] }) => void) => on("media.castRoutes", listener);

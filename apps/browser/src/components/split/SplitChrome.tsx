@@ -246,7 +246,7 @@ export const SplitToast = memo(function SplitToast({ windowId }: { windowId: str
     if (!toast || toast.sticky) return;
     const timer = setTimeout(() => setClosing(true), toast.action ? TOAST_ACTION_MS : TOAST_MS);
     return () => clearTimeout(timer);
-  }, [toast?.id]);
+  }, [toast]);
   if (!shown) return null;
   const action = shown.action;
   return (

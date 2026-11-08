@@ -31,6 +31,16 @@ BOOL gDisplayMediaPicker = YES;
 
 static BOOL gSelectionPopover = YES;
 static char kScriptFramesKey;
+static NSDictionary<NSString *, NSNumber *> *gPlaybackSpeeds = @{};
+
+static BOOL IsPlaybackSpeed(double speed) { return speed >= 0.1 && speed <= 16; }
+
+static NSNumber *PlaybackSpeedFor(NSString *origin) {
+  if (!gPlaybackSpeeds.count || ![origin hasPrefix:@"http"]) return nil;
+  NSString *host = [NSURLComponents componentsWithString:origin].host.lowercaseString;
+  if ([host hasPrefix:@"www."]) host = [host substringFromIndex:4];
+  return host.length ? gPlaybackSpeeds[host] : nil;
+}
 
 static NSDictionary *DisplayMediaAudioOffer(NSDictionary *message) {
   if (!Flag(message, @"audio")) return nil;
@@ -62,6 +72,7 @@ void AnswerHello(ArdiaCoreTab *tab, NSString *profile, NSString *frameId, BOOL m
     if (!frameId.length || !to) return;
     NSMutableDictionary *config = [NSMutableDictionary dictionary];
     if (blockAutoplay) config[@"blockAutoplay"] = @YES;
+    config[@"playbackSpeed"] = PlaybackSpeedFor(origin);
     if (gDisplayMediaPicker) config[@"displayMediaPicker"] = @YES;
     if (main && ArdiaFieldTimingEnabled()) config[@"fieldTiming"] = @YES;
     if (main) config[@"selectionPopover"] = @(gSelectionPopover);
@@ -97,6 +108,14 @@ NSMutableOrderedSet<NSString *> *ScriptFramesOf(ArdiaCoreTab *tab) {
 + (void)setDisplayMediaPicker:(BOOL)enabled {
   gDisplayMediaPicker = enabled;
   ArdiaCoreEngine.pagesPickDisplayMedia = enabled;
+}
+
++ (void)setPlaybackSpeeds:(NSDictionary<NSString *, id> *)speeds {
+  NSMutableDictionary<NSString *, NSNumber *> *valid = [NSMutableDictionary dictionary];
+  [speeds enumerateKeysAndObjectsUsingBlock:^(NSString *host, id speed, BOOL *) {
+    if ([speed isKindOfClass:NSNumber.class] && IsPlaybackSpeed([speed doubleValue])) valid[host] = speed;
+  }];
+  gPlaybackSpeeds = valid;
 }
 
 + (void)setSelectionPopoverEnabled:(BOOL)enabled {
@@ -170,6 +189,9 @@ NSMutableOrderedSet<NSString *> *ScriptFramesOf(ArdiaCoreTab *tab) {
       [self emit:@"scroll" payload:@{@"state" : state}];
   } else if ([kind isEqualToString:@"drm"] && dict) {
     [self emit:@"protectedMedia" payload:@{@"keySystem" : Text(dict, @"keySystem", 64) ?: @"", @"main" : @(main)}];
+  } else if ([kind isEqualToString:@"playbackSpeed"]) {
+    double speed;
+    if (Finite(dict, @"speed", &speed) && IsPlaybackSpeed(speed)) [self emit:@"playbackSpeed" payload:@{@"speed" : @(speed)}];
   } else if ([kind isEqualToString:@"nowPlaying"]) {
     if (!_reports.nowPlaying) _reports.nowPlaying = [ArdiaNowPlaying new];
     NSDictionary *state = [_reports.nowPlaying noteFrame:frameId page:dict main:main];
