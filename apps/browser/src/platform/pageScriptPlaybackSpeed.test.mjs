@@ -11,6 +11,7 @@ const pick = (name) => {
 const nextSpeed = pick("nextSpeed");
 const speedStep = pick("speedStep");
 const typingIn = pick("typingIn");
+const speedText = pick("speedText");
 
 test("S and D step the speed by 0.1 between 0.1× and 16×", () => {
   assert.equal(nextSpeed(1, 0.1), 1.1);
@@ -35,4 +36,11 @@ test("typing in a field or an editable page never changes the speed", () => {
   assert.equal(typingIn({ tagName: "DIV", isContentEditable: true }), true);
   assert.equal(typingIn({ tagName: "VIDEO" }), false);
   assert.equal(typingIn(null), false);
+});
+
+test("the bubble shows one decimal, two when the site picked a finer speed", () => {
+  assert.equal(speedText(1), "1.0×");
+  assert.equal(speedText(1.1), "1.1×");
+  assert.equal(speedText(1.25), "1.25×");
+  assert.equal(speedText(16), "16.0×");
 });
