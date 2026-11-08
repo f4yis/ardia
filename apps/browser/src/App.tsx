@@ -34,7 +34,7 @@ import { currentBasePalette } from "./state/config/basePalette";
 import { focusedWindowOf } from "./state/windows/ui";
 import { SETTLE_MS, useSettled } from "./components/ui/useSettled";
 import { forgetWindowRootSize, setWindowRootSize } from "./state/windows/rootSize";
-import { useWindowFullScreen } from "./state/windows/hooks";
+import { usePageEdgeToEdge } from "./state/windows/hooks";
 
 provideProfileLooks({ accent: profileAccent, theme: (profile, appDark, source) => profileTheme(profile, appDark, source, currentBasePalette()) });
 
@@ -66,7 +66,7 @@ function BrowserWindow() {
   const topTabs = useTabLayout() === "top";
   const fullscreen = !!useFullscreenTab(windowId);
   const pageFrame = usePageFrameInset();
-  const frame = useWindowFullScreen(windowId) ? 0 : pageFrame;
+  const frame = usePageEdgeToEdge(windowId) ? 0 : pageFrame;
   const cardTop = useCardTopInset(frame);
   const [width, setWidth] = useState(0);
   const settleWidth = useSettled(setWidth, topTabs ? 0 : SETTLE_MS);
