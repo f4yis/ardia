@@ -193,6 +193,7 @@ export type EngineCalls = {
   "webView.setSelectionPopover": [{ enabled: boolean }, null];
   "webView.setBlockAutoplayEverywhere": [{ enabled: boolean }, null];
   "webView.setCommandScrollZoom": [{ enabled: boolean }, null];
+  "webView.setPlaybackSpeeds": [{ speeds: Record<string, number> }, null];
   "webView.setLittleArdiaOpensNewTabLinks": [{ enabled: boolean }, null];
   "webView.setPopupsOpenAsTabs": [{ enabled: boolean }, null];
   "webView.setAutoPictureInPicture": [{ enabled: boolean }, null];

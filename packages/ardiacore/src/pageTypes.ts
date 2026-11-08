@@ -241,6 +241,7 @@ export type WebViewProps = ViewProps & {
   onAppBadge?: (badge: AppBadge) => void;
   onFieldProviderOpened?: (opened: FieldProviderOpened) => void;
   onVerificationCodeFound?: (found: VerificationCodeFound) => void;
+  onPlaybackSpeed?: (speed: number) => void;
 };
 
 export type WebViewHandle = {

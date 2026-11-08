@@ -40,6 +40,7 @@ const SYNCED = true;
 
 const isRecordOf = (v: unknown, item: (x: unknown) => boolean) => isFields(v) && Object.values(v).every(item);
 const isWidth = (v: unknown) => typeof v === "number" && Number.isFinite(v) && v > 0;
+const isPlaybackSpeed = (v: unknown) => typeof v === "number" && v >= 0.1 && v <= 16;
 const hasStrings = (v: unknown, keys: readonly string[]) => isFields(v) && keys.every((k) => isString(v[k]));
 
 const STRING_LIST: JsonSchema = { type: "array", items: { type: "string" } };
@@ -112,6 +113,7 @@ export const SETTING_SPECS = {
   showFullUrlInTabHoverMenu: flag(false, SYNCED),
   closedTopAppTiles: flag(true, SYNCED), topAppFolders: flag(true, SYNCED),
   unreadHiddenSites: shaped<string[]>([], isStringList, STRING_LIST, SYNCED),
+  playbackSpeeds: shaped<Record<string, number>>({}, (v) => isRecordOf(v, isPlaybackSpeed), recordOf({ type: "number", minimum: 0.1, maximum: 16 })),
   neverTranslateSites: shaped<Record<string, string[]>>({}, (v) => isRecordOf(v, isStringList), recordOf(STRING_LIST)),
   developerModeSites: shaped<Record<string, boolean>>({}, (v) => isRecordOf(v, (on) => typeof on === "boolean"), recordOf({ type: "boolean" }), SYNCED),
   autoPictureInPicture: flag(true, SYNCED),

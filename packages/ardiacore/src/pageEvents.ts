@@ -87,6 +87,7 @@ type NativeEvents = {
   onAppBadge: AppBadge;
   onFieldProviderOpened: FieldProviderOpened;
   onVerificationCodeFound: VerificationCodeFound;
+  onPlaybackSpeed: { speed: number };
 };
 export type Handlers = keyof NativeEvents;
 export type PageEvent = { name: string; data: unknown };
@@ -144,6 +145,7 @@ const PAGE_EVENTS = {
   onAppBadge: "appBadge",
   onFieldProviderOpened: "fieldProviderOpened",
   onVerificationCodeFound: "verificationCodeFound",
+  onPlaybackSpeed: "playbackSpeed",
 } as const satisfies Record<Handlers, string>;
 export type PageEventName = (typeof PAGE_EVENTS)[Handlers];
 export const pageEventOf = (handler: Handlers): PageEventName => PAGE_EVENTS[handler];
@@ -204,6 +206,7 @@ const unwrap: { [K in Handlers]: (e: NativeEvents[K]) => Parameters<NonNullable<
     },
   ],
   onVerificationCodeFound: (e) => [{ token: String(e.token), app: String(e.app ?? ""), main: e.main === true }],
+  onPlaybackSpeed: (e) => [e.speed],
 };
 
 export const isPageEventProp = (key: string): key is Handlers => key in unwrap;
