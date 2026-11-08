@@ -229,6 +229,7 @@
     const m = e.target;
     if (!(m instanceof HTMLMediaElement)) return;
     if (e.type === "loadedmetadata" || e.type === "play" || e.type === "playing") guard(keepSpeed)(m, e.type === "playing");
+    guard(noteBubble)(m, e.type);
     if (e.type === "play" || e.type === "playing") playingMedia.add(m);
     else if (e.type === "pause" || e.type === "ended" || e.type === "emptied") playingMedia.delete(m);
     if (blockAutoplay && e.type === "play" && !(navigator.userActivation && navigator.userActivation.hasBeenActive)) {
@@ -355,24 +356,109 @@
     return key === "d" ? 0.1 : key === "s" ? -0.1 : 0;
   };
   const typingIn = (el) => !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName || ""));
+  const speedText = (rate) => rate.toFixed(Math.round(rate * 100) % 10 ? 2 : 1) + "×";
+  const frameMedia = () => {
+    const media = [...document.querySelectorAll("video,audio")];
+    if (active && !media.includes(active)) media.push(active);
+    return media;
+  };
+  const changeSpeed = (speed) => {
+    savedSpeed = speed;
+    for (const m of frameMedia()) {
+      m.playbackRate = speed;
+      speedSource.set(m, m.currentSrc);
+    }
+    send("playbackSpeed", { speed });
+  };
   addEventListener(
     "keydown",
     guard((e) => {
       const step = speedStep(e);
       if (!step || typingIn(e.composedPath()[0])) return;
-      const media = [...document.querySelectorAll("video,audio")];
-      if (active && !media.includes(active)) media.push(active);
-      const videos = media.filter((m) => m.tagName === "VIDEO");
+      const videos = frameMedia().filter((m) => m.tagName === "VIDEO");
       const lead = videos.find(isPlaying) || videos[0];
       if (!lead) return;
-      savedSpeed = nextSpeed(lead.playbackRate, step);
-      for (const m of media) {
-        m.playbackRate = savedSpeed;
-        speedSource.set(m, m.currentSrc);
-      }
       e.preventDefault();
       e.stopPropagation();
-      send("playbackSpeed", { speed: savedSpeed });
+      changeSpeed(nextSpeed(lead.playbackRate, step));
+    }),
+    true,
+  );
+  const bubbles = new Map();
+  let bubbleSeq = 0;
+  let bubbleSheet = null;
+  const BUBBLE_CSS = `
+:host{position:fixed!important;position-visibility:anchors-visible!important;inset:auto!important;top:anchor(top)!important;left:anchor(left)!important;margin:8px!important;padding:0!important;border:0!important;background:none!important;overflow:visible!important;width:auto!important;height:auto!important}
+div{display:flex;align-items:center;height:22px;padding:0 2px;border-radius:7px;background:rgba(28,28,28,.72);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff;font:600 12px/1 -apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums;opacity:.6;transition:opacity .12s;user-select:none;-webkit-user-select:none;cursor:default}
+div:hover{opacity:1}
+div[hidden]{display:none}
+span{padding:0 6px}
+button{all:unset;display:none;width:20px;height:18px;border-radius:5px;text-align:center;line-height:18px;font-size:14px}
+div:hover button{display:block}
+button:hover{background:rgba(255,255,255,.18)}`;
+  const dropBubble = (v) => {
+    const bubble = bubbles.get(v);
+    if (!bubble) return;
+    bubbles.delete(v);
+    bubble.observer.disconnect();
+    bubble.host.remove();
+    v.style.removeProperty("anchor-name");
+  };
+  const showBubble = (v) => {
+    if (bubbles.has(v) || !(v instanceof HTMLVideoElement)) return;
+    const anchor = `--ardia-speed-${++bubbleSeq}`;
+    const host = document.createElement("ardia-speed");
+    const root = host.attachShadow({ mode: "closed" });
+    if (!bubbleSheet) {
+      bubbleSheet = new CSSStyleSheet();
+      bubbleSheet.replaceSync(BUBBLE_CSS);
+    }
+    root.adoptedStyleSheets = [bubbleSheet];
+    host.style.setProperty("position-anchor", anchor, "important");
+    const pill = document.createElement("div");
+    const label = document.createElement("span");
+    const button = (text, step) => {
+      const b = document.createElement("button");
+      b.textContent = text;
+      b.tabIndex = -1;
+      b.addEventListener("click", guard(() => changeSpeed(nextSpeed(v.playbackRate, step))));
+      return b;
+    };
+    label.addEventListener("click", guard(() => changeSpeed(1)));
+    pill.append(button("−", -0.1), label, button("+", 0.1));
+    root.append(pill);
+    for (const type of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "contextmenu"])
+      host.addEventListener(type, (e) => {
+        e.stopPropagation();
+        if (type === "mousedown") e.preventDefault();
+      });
+    const observer = new ResizeObserver(
+      guard(() => {
+        if (!v.isConnected) return dropBubble(v);
+        pill.hidden = v.offsetWidth < 160 || v.offsetHeight < 90;
+      }),
+    );
+    bubbles.set(v, { host, label, observer });
+    label.textContent = speedText(v.playbackRate);
+    v.style.setProperty("anchor-name", anchor);
+    host.popover = "manual";
+    document.documentElement.append(host);
+    host.showPopover();
+    observer.observe(v);
+  };
+  const noteBubble = (m, type) => {
+    if (type === "ratechange") {
+      const bubble = bubbles.get(m);
+      if (bubble) bubble.label.textContent = speedText(m.playbackRate);
+    } else if (type === "loadedmetadata" || type === "play") showBubble(m);
+  };
+  document.addEventListener(
+    "fullscreenchange",
+    guard(() => {
+      for (const { host } of bubbles.values()) {
+        host.hidePopover();
+        host.showPopover();
+      }
     }),
     true,
   );
