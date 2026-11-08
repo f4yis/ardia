@@ -516,6 +516,7 @@ void ConfigureWindow(NSWindow *window) {
   DrawnWindowCornerRadius(window);
   WatchFullScreenLights(window);
   SuppressFullScreenTitlebar(window);
+  HoldFullScreenMenuBar(window);
 }
 
 void InsetUtilityTrafficLights(NSWindow *window) {
