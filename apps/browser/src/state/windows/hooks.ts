@@ -41,6 +41,9 @@ export const useProfileNeighbours = (windowId: string) =>
 
 export const useWindowFullScreen = (windowId: string): boolean => useBrowser((s) => !!s.windows[windowId]?.fullScreen);
 
+export const usePageEdgeToEdge = (windowId: string): boolean =>
+  useBrowser((s) => !!s.windows[windowId]?.fullScreen && !(s.windows[windowId]?.sidebarOpen ?? true));
+
 export const useIsFocusedWindow = (windowId: string): boolean => useBrowser((s) => focusedWindowOf(s) === windowId);
 
 export const useDownload = (id: string) => useBrowser((s) => s.downloads.find((x) => x.id === id));

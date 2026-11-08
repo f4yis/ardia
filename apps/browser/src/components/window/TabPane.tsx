@@ -4,7 +4,7 @@ import { usePrewarm } from "../../state/tabs/prewarm";
 import { activate } from "../../state/tabs/actions";
 import { shallowEqual, useBrowserWhile, useStoreWhile, useTabValue } from "../../state/tabs/tabWatch";
 import { useSettings } from "../../state/browser/hooks";
-import { useWindowFullScreen } from "../../state/windows/hooks";
+import { usePageEdgeToEdge } from "../../state/windows/hooks";
 import { splitOf } from "../../state/splits/splits";
 import type { Tab } from "../../state/browser/types";
 import { BookmarksBar, bookmarksBarShown, type BookmarksBarMode } from "../bookmarks/BookmarksBar";
@@ -94,7 +94,7 @@ export const TabPane = memo(function TabPane({
   const autoLayout = bar.kind === "autoHide";
   const hideBar = autoLayout && bar.bar !== null;
   const mode = useToolbarMode(tabId, windowId, hideBar);
-  const windowFullScreen = useWindowFullScreen(windowId);
+  const edgeToEdge = usePageEdgeToEdge(windowId);
   const bookmarksBar = bookmarksBarShown(barMode, own.exists ? own : undefined) && !fullscreen && !inSplit && !small;
   const barHeight = useBookmarksBarHeight();
   const cardRadius = useCardFrame().radius;
@@ -117,7 +117,7 @@ export const TabPane = memo(function TabPane({
       style={{
         position: "absolute",
         ...(fills ? { left: 0, top: 0, right: 0, bottom: 0 } : { left: frame.x, top: frame.y, width: frame.width, height: frame.height }),
-        borderRadius: fullscreen || windowFullScreen ? 0 : cardRadius,
+        borderRadius: fullscreen || edgeToEdge ? 0 : cardRadius,
         overflow: "hidden",
         opacity: covered ? 0 : 1,
         backgroundColor: visible && !fullscreen && !seeThrough ? theme.card : undefined,
