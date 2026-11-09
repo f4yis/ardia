@@ -53,7 +53,7 @@ export function TopTabStrip({ width, floating = false, hidden = false, swipe = t
   const minimal = useMinimalism();
   const controls = minimal ? 0 : (profileChip ? profileChip + CONTROLS_GAP : 0) + DOWNLOADS_BOX;
   const fullScreen = useWindowFullScreen(windowId);
-  const left = floating || fullScreen ? 8 : layout.trafficLightsWidth + LIGHTS_GAP;
+  const left = floating ? 8 : layout.trafficLightsWidth + LIGHTS_GAP;
   const room = stripCaptionRoom(floating, fullScreen);
   const right = Math.max(84, controls + 8 + 6) + room;
   const pageWidth = Math.max(0, width - left - right);

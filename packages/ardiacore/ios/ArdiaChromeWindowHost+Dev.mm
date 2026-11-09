@@ -463,6 +463,14 @@ NSDictionary<NSString *, DevHandler> *DevHandlers() {
       [ArdiaWindowController forNSWindow:w].coreWindow.actedFullScreen = NO;
       return @(IsWindowFullScreen(w)).stringValue;
     },
+    @"fullScreenReveal" : ^NSString *(NSWindow *w, NSString *amount) {
+      if (amount.length) SetFullScreenRevealAmount(w, amount.doubleValue);
+      return JSONText(FullScreenRevealState(w), @"{}");
+    },
+    @"fullScreenLightsHover" : ^NSString *(NSWindow *w, NSString *inside) {
+      SetFullScreenLightsPointerInside(w, inside.boolValue);
+      return JSONText(FullScreenRevealState(w), @"{}");
+    },
     @"snapshotFrame" : ^NSString *(NSWindow *w, NSString *path) { return SnapshotFrameView(w, path); },
     @"children" : ^NSString *(NSWindow *w, NSString *) {
       NSMutableArray *children = [NSMutableArray array];
