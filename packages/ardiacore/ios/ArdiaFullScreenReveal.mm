@@ -152,7 +152,7 @@ void PlaceReveal(NSWindow *window, BOOL force) {
   reveal->_height = height;
   [CATransaction begin];
   [CATransaction setDisableActions:YES];
-  const BOOL moved = ShiftContent(window, height);
+  const BOOL moved = ShiftContent(window, 0);
   PlaceFullScreenLights(window);
   [CATransaction commit];
   if (moved) TellPagesTheyMoved(window);
