@@ -54,13 +54,7 @@ export const generalRows = {
     },
     {
       section: "Full screen",
-      rows: {
-        fullScreenMenuBarDelay: {
-          title: "Show the menu bar after the pointer rests at the top",
-          description: "Also the Dock, at its edge. A quick brush past the edge shows nothing; macOS adds its own short delay after this.",
-          keywords: ["menu bar", "dock", "full screen", "fullscreen", "hover", "top edge", "delay", "reveal"],
-        },
-      },
+      rows: { fullScreenMenuBarDelay: { title: "Show the menu bar after the pointer rests at the top", description: "Also the Dock, at its edge. A quick brush past the edge shows nothing; macOS adds its own short delay after this.", keywords: ["menu bar", "dock", "full screen", "fullscreen", "hover", "top edge", "delay", "reveal"] } },
     },
     {
       section: "Downloads",
