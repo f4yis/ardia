@@ -3,6 +3,7 @@ import { AccessibilityInfo, Animated, View, type ViewStyle } from "react-native"
 import { webviews } from "../../state/tabs/webviewHandles";
 import { withLivePage } from "../../state/tabs/livePage";
 import { newTab } from "../../state/tabs/actions";
+import { noteBackgroundTab } from "../../state/tabs/newTabNotice";
 import type { Tab } from "../../state/browser/types";
 import { Button, curve, MouseArea, nativeLoop, reduceMotion, reduceMotionKnown, springs, Symbol, type ButtonHit } from "../ui";
 
@@ -142,7 +143,7 @@ export const ReloadButton = memo(function ReloadButton({
       onPress={(m) => {
         onFocus();
         if (loading) return void web()?.stopLoading();
-        if (m.metaKey) return void newTab(tab.windowId, { url: tab.url, background: true, openerId: tab.id });
+        if (m.metaKey) return noteBackgroundTab(tab.windowId, newTab(tab.windowId, { url: tab.url, background: true, openerId: tab.id }), tab.id);
         void withLivePage(tab.id, (page) => (m.shiftKey ? page.forceReload() : page.reload()));
       }}
       onContextMenu={() => {

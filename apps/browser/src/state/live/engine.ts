@@ -8,6 +8,7 @@ import { shownTabIds } from "../tabs/shownTabs";
 import { repoKey } from "./rows";
 import { hideNewRepos } from "./repoFilter";
 import { SOURCES } from "./sources";
+import { noteBackgroundTab } from "../tabs/newTabNotice";
 import { beginLiveRefresh, applyFetch, createFolder, finishCompleting, live, markRead, removeFolder, setStatus, unhide, updateFolder, useLive } from "./store";
 import { LiveError, type CompletionState, type LiveFolder, type LiveFolderKind, type LiveItem, type LiveSourceId, type PullRequestSection } from "./types";
 import { noteLiveCompletedTabsClosed } from "../telemetry/liveCompletedTabs";
@@ -261,6 +262,7 @@ export function openLiveItem(windowId: string, folderId: string, item: LiveItem,
   const id = s.newTab(windowId, { url: item.url, background: options.background });
   const completed = live().completed[folderId]?.some((c) => c.item.id === item.id && ended(c.state));
   useBrowser.getState().updateTab(id, { liveItem: completed ? { folderId, itemId: item.id, completed } : { folderId, itemId: item.id }, pinnedUrl: home });
+  if (options.background) noteBackgroundTab(windowId, id, activeTabId(useBrowser.getState(), windowId));
   return id;
 }
 
