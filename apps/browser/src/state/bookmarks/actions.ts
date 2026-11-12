@@ -6,6 +6,7 @@ import { storeAction, useBrowser } from "../browser/store";
 import { activeTabId, bookmarkProfileId, resolveWindowId, tabTitle, viewTabIds } from "../browser/model";
 import { originalProfile } from "../windows/small";
 import { isWebPageUrl } from "../../lib/url";
+import { noteBackgroundTab } from "../tabs/newTabNotice";
 
 type OpenMode = "current" | "background" | "foreground" | "window" | "incognito" | "split";
 
@@ -32,7 +33,8 @@ export function openUrl(url: string, windowId: string | null | undefined, mode: 
     return void s.newTab(id, { url });
   }
   if (mode === "current" && tabId) return s.navigate(tabId, url);
-  s.newTab(id, { url, background: mode === "background", openerId: mode === "background" ? tabId : undefined });
+  if (mode !== "background") return void s.newTab(id, { url });
+  noteBackgroundTab(id, s.newTab(id, { url, background: true, openerId: tabId }), tabId);
 }
 
 export type OpenAllMode = "tabs" | "window" | "incognito";

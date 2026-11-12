@@ -40,7 +40,7 @@ export const useProfileNeighbours = (windowId: string) =>
   );
 
 export const usePageEdgeToEdge = (windowId: string): boolean =>
-  useBrowser((s) => !!s.windows[windowId]?.fullScreen && !(s.windows[windowId]?.sidebarOpen ?? true));
+  useBrowser((s) => !!s.windows[windowId]?.fullScreen && !tabsShownIn(s, windowId));
 
 export const useIsFocusedWindow = (windowId: string): boolean => useBrowser((s) => focusedWindowOf(s) === windowId);
 
