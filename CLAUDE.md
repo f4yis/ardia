@@ -29,7 +29,10 @@ git fetch upstream && git rebase upstream/main && pnpm install && pnpm pods
 ```
 Then rebuild and replace as above. `pnpm pods` quotes `MARKETING_VERSION` in `project.pbxproj`; undo that before the
 next rebase. If the build says "no prebuilt engine", run `packages/ardiacore/scripts/fetch-engine.sh --nearest`.
-Don't edit `engine/`: that needs a 5-hour Chromium build.
+That only downloads the engine: the build calls `fetch-engine.sh` without `--nearest` and fails the same way, so
+pass the path it printed on the build command,
+`ARDIACORE_FRAMEWORK="$PWD/build-ardiacore/prebuilt/<key>/Chromium Framework.framework" xcodebuild …`, until upstream
+publishes an engine for the current key. Don't edit `engine/`: that needs a 5-hour Chromium build.
 
 ## Gotchas
 - A hook blocks `git switch` and `git checkout <branch>`; use `git checkout -b`.
