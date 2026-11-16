@@ -34,6 +34,7 @@ const MENU_BAR_DELAYS = [0, 0.1, 0.25, 0.5, 1];
 function FullScreenSection() {
   const delay = useSettings((s) => s.fullScreenMenuBarDelay);
   const delays = MENU_BAR_DELAYS.includes(delay) ? MENU_BAR_DELAYS : [...MENU_BAR_DELAYS, delay].sort((a, b) => a - b);
+  if (!PLATFORM_FEATURES.menuBar) return null;
   return (
     <>
       <SectionHeader title="Full screen" />

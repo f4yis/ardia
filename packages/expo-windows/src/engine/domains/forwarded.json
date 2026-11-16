@@ -92,13 +92,14 @@
       "setCommandScrollZoom",
       "setLittleArdiaOpensNewTabLinks",
       "setAutoPictureInPicture",
+      "setPlaybackSpeeds",
       "setVideoUpscaling",
       "setVideoUpscalingTestConditions",
       "takeContentDrift",
       "takeFirstPaintHolds",
       "videoUpscalingState"
     ],
-    "windows": ["list", "dev"]
+    "windows": ["list", "dev", "setFullScreenMenuBarDelay"]
   },
   "topics": {
     "history.changed": "history.changed",
