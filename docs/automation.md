@@ -77,18 +77,24 @@ bookmark searches) and their fixed page title.
 - `hello` `{"caller"?: {"name", "app"?}}` → `{"app": "Ardia", "version": "0.2.44", "protocol": 4}`. Protocol 2 added
   `subscribe`'s options, `run`'s `tab`, `answer` and decide requests; protocol 3 added `workspace` and `apply`
   (Tabs and groups, below); protocol 4 added the plugin methods (`plugins`, `plugins.enable`, `plugins.disable`,
-  `plugins.remove`, `plugins.call`, `docs/plugins.md`); older clients keep working. `caller` names
+  `plugins.remove`, `plugins.call`, `docs/plugins.md`), `choices`, items for `run` (Which commands, below) and profile names wherever a profile id goes; older clients keep working. `caller` names
   who runs the client for the pill (The pill), display only.
 - `caller` → `{"ok": true}` puts the connection's `hello` caller on the pill now (`ok` is false without one). The
   `browse` daemon and `scripts test` call it, since their CDP connections carry no name.
-- `commands` → `[{"id", "title", "scope", "variants": [ids] | null}]`: the automatable commands. `title` is the menu
-  title (else the command bar's, else the id), `scope` is `"page"`, `"window"` or `null`.
+- `commands` → `[{"id", "title", "scope", "variants": [ids] | null, "choices"?: true}]`: the automatable commands.
+  `title` is the menu title (else the command bar's, else the id), `scope` is `"page"`, `"window"` or `null`.
+  `choices` marks a command whose `arg` is an item `choices` lists.
+- `choices` `{"command", "window"?, "tab"?}` → `{"command", "window", "kind", "choices": [{"id", "title", "detail"?,
+  "current"?}]}`: what `run` takes for that command in that window (the last focused eligible one by default), as
+  its menu lists it. `kind` is `profile`, `bookmark`, `recently closed item` or `extension`; `variants` for a
+  command with variants (each variant as an item) and `none` for one that takes nothing.
 - `run` `{"command", "arg"?, "window"?, "tab"?}` → `{"ok": true}` once the command was dispatched (not necessarily finished).
   In a background instance `run` answers `refused` for every command ("run isn't available in background instances;
   use the dedicated methods"), since a menu command can open UI or start a page load nobody can answer; a visible
   instance runs it, and a question it asks shows in its window while the reply still comes at dispatch, as for a
   click on the menu.
-  `command` is a catalog id, `arg` one of its variant ids. It runs through `runCommand`, exactly as the menu or a
+  `command` is a catalog id, `arg` one of its variant ids, or for a command with `choices` the item: its id, else its
+  name (see Which commands). It runs through `runCommand`, exactly as the menu or a
   shortcut would. `window` must be an eligible window id, else `no_window` (no fallback to another window); without
   it, the last focused eligible window (windows never focused come after, in window order); with no browser window
   open at all it runs with none, as the menu does (`newTab` and `newWindow` open one); otherwise `no_window`. A
@@ -240,9 +246,22 @@ native selectors. Refused (`refused`), and left out of `commands`:
 - anything that changes which engine shows a page (`togglePageEngine`, its sign-in transfer);
 - anything whose effect is a setting the config allowlist leaves out (`docs/config.md`), however it is stored;
 - anything touching control itself;
-- for now, commands that need an argument other than a variant id (a profile, window, bookmark, extension, folder
-  or closed-item id: `switchProfile`, `moveTabToWindow`, `openBookmark`, …). An `arg` that isn't one of the
-  command's variants is `bad_request`.
+- commands that need an argument the socket can't name yet (a bookmark folder: `addBookmarkToFolder`,
+  `addFolderToSidebar`, `restoreArcFolders`), and `moveTabToProfile` and `moveTabToWindow`, which ask before moving
+  and are refused with a pointer at `apply`'s `tab.move` (`ardia tabs move --profile/--window`), which never asks.
+  An `arg` that isn't one of the command's variants is `bad_request`.
+
+Four commands take an item (`state/automation/commandChoices.ts`), the same ones their menus list in that window:
+`switchProfile` (the profiles, the shown one `current`; Little Ardia moves to it), `openBookmark` (every link under
+the window's profile's Bookmarks Bar and Other Bookmarks, its folder path and address as `detail`; bookmarklets are
+left out and refused, since they run script in the page), `restoreClosed` (that profile's recently closed tabs,
+windows and groups, newest first) and `openExtension` (the window's extensions). `run`'s `arg` is the item's id, or
+the first of these that names exactly one: a name equal to the item's (case and surrounding spaces aside), the last
+part of its `detail` (a bookmark's address), a part of its name or `detail`. None is `no_window`; two or more are
+`bad_request`, listing up to eight with their ids. Profiles resolve the same way everywhere a profile id goes:
+`workspace`'s `profile`, and `profile` in every `apply` operation (resolved before the operation runs, so `$N`,
+checks and results see the id). Launch actions take none of the four. Telemetry: the command's run counts as before,
+and the CLI's `cli_command` names `commands` and `profiles`.
 
 This is more than the token path grants: the token path reaches web pages through an allowlist of CDP methods,
 while the socket reaches the browser's own commands (tabs, windows, sidebar, splits, groups, profiles' UI, sharing,

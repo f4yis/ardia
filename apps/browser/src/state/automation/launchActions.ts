@@ -1,4 +1,5 @@
 import { automationCommands, automationDecision, isCatalogCommand, variantsOf } from "./automationCommands";
+import { takesChoice } from "./commandChoices";
 
 export type LaunchAction = { command: string; arg: string | null };
 
@@ -9,10 +10,10 @@ export function parseLaunchAction(entry: string): LaunchAction | string {
   const command = colon < 0 ? entry : entry.slice(0, colon);
   const arg = colon < 0 ? null : entry.slice(colon + 1);
   if (!isCatalogCommand(command)) return `${command} isn't a command`;
-  if (automationDecision(command) !== "run") return `${command} can't run from launchActions`;
+  if (automationDecision(command) !== "run" || takesChoice(command)) return `${command} can't run from launchActions`;
   const variants = variantsOf(command);
   if (arg !== null && !variants?.includes(arg)) return variants ? `${command} takes one of: ${variants.join(", ")}` : `${command} takes no argument`;
   return { command, arg };
 }
 
-export const launchActionIds = (): string[] => automationCommands().flatMap((c) => [c.id, ...(c.variants ?? []).map((v) => `${c.id}:${v}`)]);
+export const launchActionIds = (): string[] => automationCommands().filter((c) => !c.choices).flatMap((c) => [c.id, ...(c.variants ?? []).map((v) => `${c.id}:${v}`)]);

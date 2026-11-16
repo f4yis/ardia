@@ -81,7 +81,7 @@ test("run refuses what isn't automatable and accepts only catalog ids", async ()
   assert.equal(call("run", { command: "togglePageEngine" }).error.code, "refused");
   assert.equal(call("run", { command: "toggleJavaScriptFromAppleEvents" }).error.code, "refused");
   assert.equal(S().settings.allowJavaScriptFromAppleEvents, false);
-  assert.equal(call("run", { command: "switchProfile", arg: "x" }).error.code, "refused");
+  assert.equal(call("run", { command: "addFolderToSidebar", arg: "x" }).error.code, "refused");
   assert.equal(call("run", { command: "setAppearance", arg: "purple" }).error.code, "bad_request");
   assert.equal(call("run", {}).error.code, "bad_request");
   assert.deepEqual(call("run", { command: "setAppearance", arg: "dark" }).result, { ok: true });

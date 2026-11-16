@@ -1,14 +1,15 @@
 import { errorText } from "../../lib/errors";
 import { useBrowser } from "../browser/store";
-import { activeTabId, isIncognitoProfile } from "../browser/model";
+import { activeTabId } from "../browser/model";
 import { noteCliEdits } from "../telemetry/usage";
 import { consentToken, type ConsentToken } from "../telemetry/client";
 import { failure, type ErrorCode, type MethodError } from "./automationMethods";
-import { eligibleKind, isEligibleTab, ownEntry } from "./automationWindows";
+import { eligibleKind, isEligibleTab } from "./automationWindows";
 import { parseOps, type Op } from "./workspaceOps";
 import { runOp } from "./workspaceApply";
 import { takeLateResults } from "./tabCalls";
-import { OpError, type Changed, type OpResult } from "./workspaceTargets";
+import { OpError, profileOf, type Changed, type OpResult } from "./workspaceTargets";
+import { resolveProfile } from "./commandChoices";
 import { groupFields, isEligibleGroup, tabNode, workspace, type GroupNode, type TabNode } from "./workspaceTree";
 import { sampleTabUsage, workspaceWithUsage } from "./workspaceUsage";
 
@@ -25,10 +26,11 @@ export function workspaceMethod(params: Record<string, unknown>): Body | Promise
   if (params.usage !== undefined && typeof params.usage !== "boolean") return failure("bad_request", "usage is true or false.");
   const s = useBrowser.getState();
   if (window && !eligibleKind(s, window)) return failure("no_window", `There's no window ${window} the ardia command can use.`);
-  if (profile && (!ownEntry(s.profiles, profile) || isIncognitoProfile(profile))) return failure("no_window", `There's no profile ${profile}.`);
-  if (!params.usage) return { result: workspace(s, { window, profile }) };
+  const profileId = profile ? resolveProfile(s, profile) : null;
+  if (profileId !== null && typeof profileId !== "string") return profileId;
+  if (!params.usage) return { result: workspace(s, { window, profile: profileId }) };
   return sampleTabUsage().then(
-    (usage) => ({ result: workspaceWithUsage(workspace(useBrowser.getState(), { window, profile }), usage) }),
+    (usage) => ({ result: workspaceWithUsage(workspace(useBrowser.getState(), { window, profile: profileId }), usage) }),
     (error) => failure("failed", `Ardia couldn't read its processes: ${errorText(error)}`),
   );
 }
@@ -68,7 +70,7 @@ async function runAll(ops: Op[], stillOn: () => boolean, consent: ConsentToken |
       break;
     }
     try {
-      results.push(await runOp(results, op, stillOn, connection));
+      results.push(await runOp(results, op.profile === undefined ? op : { ...op, profile: profileOf(String(op.profile)) }, stillOn, connection));
     } catch (thrown) {
       const code = thrown instanceof OpError ? thrown.code : "failed";
       const changed = thrown instanceof OpError ? thrown.changed : undefined;

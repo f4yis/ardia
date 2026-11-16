@@ -25,7 +25,7 @@ import { consentToken, type ConsentToken } from "../telemetry/client";
 import { warnFor } from "../telemetry/logs";
 import { cliTabTargets } from "../../platform/cli";
 import { TAB_IDLE_EVENTS, USER_IDLE_EVENTS, type AutomationEventName } from "./eventNames";
-import { clientProtocolProblem, commands, failure, hello, parseRequest, parseSubscription, planRun, type RequestId, type Subscription } from "./automationMethods";
+import { choicesMethod, clientProtocolProblem, commands, failure, hello, parseRequest, parseSubscription, planRun, type RequestId, type Subscription } from "./automationMethods";
 import { feedNeeds, stopFeed, updateFeed } from "./automationFeed";
 import { answerDecision, dropResponder, serveHooks, stopResponders } from "./decideSocket";
 import { launchToReplay, recordLaunch, runLaunchActions } from "./lifecycleEvents";
@@ -237,6 +237,8 @@ function answerAs(origin: Pick<SocketOrigin, "segment">, connection: number, met
       return { result: commands() };
     case "methods":
       return { result: methodsCatalog() };
+    case "choices":
+      return choicesMethod(useBrowser.getState(), params);
     case "windows":
       return windowsWithTargets(automationWindows(useBrowser.getState())).then((result) => ({ result }));
     case "workspace":

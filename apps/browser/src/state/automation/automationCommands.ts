@@ -1,6 +1,7 @@
 import type { BrowserCommand } from "../../platform/commands";
 import { COMMANDS, commandBarTitle, UNAVAILABLE_COMMANDS } from "../commands/commandCatalog";
 import { isConfigSettingKey } from "../settings/configAllowlist";
+import { choiceTitle, takesChoice } from "./commandChoices";
 
 export type AutomationDecision = "run" | "endsApp" | "changesEngine" | "leftOutSetting" | "control" | "needsArgument" | "needsPerson";
 
@@ -12,7 +13,7 @@ export const AUTOMATION: Readonly<Record<BrowserCommand, AutomationDecision>> = 
   toggleOpenLinksInLittleArdia: "run",
   reopenClosedTab: "run",
   reopenClosedWindow: "run",
-  restoreClosed: "needsArgument",
+  restoreClosed: "run",
   clearRecentlyClosed: "run",
   focusCommandBar: "run",
   closeTab: "run",
@@ -63,7 +64,7 @@ export const AUTOMATION: Readonly<Record<BrowserCommand, AutomationDecision>> = 
   moveTabToWindow: "needsArgument",
   bookmarkPage: "run",
   addBookmarkToFolder: "needsArgument",
-  openBookmark: "needsArgument",
+  openBookmark: "run",
   addFolderToSidebar: "needsArgument",
   restoreArcFolders: "needsArgument",
   toggleMute: "run",
@@ -71,7 +72,7 @@ export const AUTOMATION: Readonly<Record<BrowserCommand, AutomationDecision>> = 
   toggleReader: "run",
   downloads: "run",
   mergeAllWindows: "run",
-  switchProfile: "needsArgument",
+  switchProfile: "run",
   nextProfile: "run",
   previousProfile: "run",
   newProfile: "needsPerson",
@@ -103,7 +104,7 @@ export const AUTOMATION: Readonly<Record<BrowserCommand, AutomationDecision>> = 
   releaseNotes: "run",
   showOnboarding: "needsPerson",
   taskManager: "run",
-  openExtension: "needsArgument",
+  openExtension: "run",
   addExtension: "run",
   manageExtensions: "run",
   pinExtensions: "needsPerson",
@@ -140,10 +141,10 @@ export const variantsOf = (command: BrowserCommand): string[] | null => {
   return variants ? Object.keys(variants) : null;
 };
 
-export type AutomationCommand = { id: BrowserCommand; title: string; scope: string | null; variants: string[] | null };
+export type AutomationCommand = { id: BrowserCommand; title: string; scope: string | null; variants: string[] | null; choices?: true };
 
 export function automationCommands(): AutomationCommand[] {
   return (Object.keys(SPECS) as BrowserCommand[])
     .filter((id) => isAutomatable(id) && !UNAVAILABLE_COMMANDS.has(id))
-    .map((id) => ({ id, title: SPECS[id].title ?? (commandBarTitle(id) || id), scope: SPECS[id].scope ?? null, variants: variantsOf(id) }));
+    .map((id) => ({ id, title: SPECS[id].title ?? (commandBarTitle(id) || choiceTitle(id) || id), scope: SPECS[id].scope ?? null, variants: variantsOf(id), ...(takesChoice(id) ? { choices: true as const } : {}) }));
 }

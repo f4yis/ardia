@@ -27,9 +27,9 @@ test("commands that set a setting in runCommand's own cases touch only allowlist
   }
 });
 
-test("the engine switch and commands needing a free argument are refused", () => {
+test("the engine switch and commands needing an argument the socket can't name yet are refused", () => {
   assert.equal(automationDecision("togglePageEngine"), "changesEngine");
-  for (const id of ["switchProfile", "moveTabToWindow", "openBookmark", "addFolderToSidebar", "restoreClosed"]) assert.equal(automationDecision(id), "needsArgument", id);
+  for (const id of ["addFolderToSidebar", "restoreArcFolders", "addBookmarkToFolder"]) assert.equal(automationDecision(id), "needsArgument", id);
 });
 
 test("commands lists exactly the automatable commands, with titles and variants", () => {

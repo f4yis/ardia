@@ -1,6 +1,6 @@
 import { useBrowser, type BrowserState } from "../browser/store";
 import type { TabGroup } from "../browser/types";
-import { isIncognitoProfile, isPinnedRow } from "../browser/model";
+import { isPinnedRow } from "../browser/model";
 import { ancestorIds, innermostGroupOf, rootOf } from "../groups/groups";
 import type { TabPlacement } from "../pins/placing";
 import { groupLabel } from "../pins/tabGrouping";
@@ -9,6 +9,7 @@ import { eligibleKind, isEligibleTab, lastFocusedEligibleWindow, ownEntry } from
 import type { GroupName, Op } from "./workspaceOps";
 import { iconName, isEligibleGroup } from "./workspaceTree";
 import { isTabBusy } from "./tabCalls";
+import { resolveProfile } from "./commandChoices";
 
 export type Changed = { tabs?: string[]; groups?: string[] };
 
@@ -111,9 +112,10 @@ export function normalWindow(id: string): string {
   return id;
 }
 
-export function profileOf(id: string): string {
-  if (!ownEntry(store().profiles, id) || isIncognitoProfile(id)) throw new OpError("no_window", `There's no profile ${id}.`);
-  return id;
+export function profileOf(ref: string): string {
+  const found = resolveProfile(store(), ref);
+  if (typeof found !== "string") throw new OpError(found.error.code, found.error.message);
+  return found;
 }
 
 const isNormal = (s: BrowserState, id: string) => eligibleKind(s, id) === "normal";
