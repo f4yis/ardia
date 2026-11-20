@@ -28,6 +28,7 @@ import { TabWebView } from "./TabWebView";
 import { withoutFragment } from "../../lib/url";
 import { developerBarShown, paneBar, type CardChrome } from "./paneChrome";
 import { DeveloperBar } from "../toolbar/DeveloperBar";
+import { DEVELOPER_BAR } from "../toolbar/tokens";
 import { useDeveloperMode } from "../../state/site/developerMode";
 import { PageOverlays } from "./PageOverlays";
 import { useProfileTheme } from "./ThemeScope";
@@ -145,7 +146,7 @@ export const TabPane = memo(function TabPane({
       {bar.kind === "toolbar" && <Toolbar tabId={tabId} geometry={geometry} windowId={windowId} inSplit={inSplit} focused={focused || !inSplit} />}
       {bar.kind === "backdrop" && <ToolbarBackdrop tabId={tabId} />}
       {bar.kind === "spacer" && <View style={{ height: toolbarHeight }} />}
-      {developerBar && <DeveloperBar tabId={tabId} windowId={windowId} />}
+      {developerBar && (visible ? <DeveloperBar tabId={tabId} windowId={windowId} /> : <View style={{ height: DEVELOPER_BAR.height }} />)}
       {!autoLayout && bookmarksBar && <BookmarksBar tabId={tabId} placeholder={!visible} />}
       <Animated.View style={autoLayout ? motion.groupStyle : { flex: 1 }}>
         {autoLayout && bookmarksBar && <BookmarksBar tabId={tabId} placeholder={!visible} />}
