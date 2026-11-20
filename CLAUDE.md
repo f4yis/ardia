@@ -16,6 +16,10 @@ publish nothing.
    cd apps/browser && xcodebuild -workspace macos/Ardia.xcworkspace -scheme Ardia-macOS -derivedDataPath build-fayis \
      -destination 'platform=macOS,arch=arm64' -configuration Release -allowProvisioningUpdates -quiet build
    ```
+   Then bundle the official Apple Passwords plugin, as a release does (a plain xcodebuild ships no plugins):
+   `scripts/fork/bundle-plugins.sh apps/browser/build-fayis/Build/Products/Release/Ardia.app`. It leaves out
+   upstream's `cli` plugin on purpose: once installed it's always on and would replace this fork's own `ardia`
+   (see the plugins fork).
 3. Quit the app: `osascript -e 'tell application id "com.peweo.ardia" to quit'`. If it doesn't exit, it's
    waiting on a confirm dialog: ask the user. Never kill it. Once it has exited:
    ```sh
