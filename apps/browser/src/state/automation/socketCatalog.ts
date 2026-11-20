@@ -80,6 +80,7 @@ export const CORE_METHODS: MethodSpec[] = [
   core("caller", false, "Note the caller named in hello as the one running now", "{ok}"),
   core("methods", false, "Every method the socket answers, with its params schema, result and whether it changes anything", "[{name, area, mutates, description, params, result}]"),
   core("commands", false, "The menu commands run takes", "[{id, title, …}]"),
+  core("choices", false, "The items a command run takes in a window, as its menu lists them", "{command, window, kind, choices}", obj({ command: { type: "string" }, window: NULLABLE_ID, tab: NULLABLE_ID }, ["command"])),
   core("windows", false, "Windows and their tabs, with each tab's DevTools target", "[{id, kind, focused, profile, profileName, tabs}]"),
   core("workspace", false, "The sidebar tree of a window or profile: pinned, groups and tabs", "{windows, …}", obj({ window: NULLABLE_ID, profile: NULLABLE_ID, usage: { type: "boolean" } })),
   core("apply", true, "A batch of ops on tabs, groups and pins: open, tab.*, group.*", "{ok, applied, results, tabs, groups, windows}", obj({ ops: { type: "array" } }, ["ops"])),

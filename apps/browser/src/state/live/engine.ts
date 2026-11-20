@@ -47,9 +47,7 @@ function fetchSource(source: LiveSourceId, folder: LiveFolder, interactive: bool
 const SECTION_ORDER: Record<PullRequestSection, number> = { authored: 0, review: 1, team: 2 };
 
 function order(items: LiveItem[]): LiveItem[] {
-  return [...items].sort(
-    (a, b) => (SECTION_ORDER[a.section ?? "authored"] ?? 0) - (SECTION_ORDER[b.section ?? "authored"] ?? 0) || b.updatedAt - a.updatedAt,
-  );
+  return [...items].sort((a, b) => (SECTION_ORDER[a.section ?? "authored"] ?? 0) - (SECTION_ORDER[b.section ?? "authored"] ?? 0) || b.updatedAt - a.updatedAt);
 }
 
 function queueFollowUp(folderId: string, allowed: () => boolean) {
