@@ -4,7 +4,7 @@ import { useTheme } from "../ui/theme";
 import { ContextMenuArea, Divider, sidebarLineHeight, space, Symbol, Text, useHover } from "../ui";
 import { TAB_ROW } from "./tokens";
 import { HoverSlot } from "../ui/HoverSlot";
-import { closeAllTabs } from "../../state/sidebar/clearTabs";
+import { confirmCloseAllTabs } from "../../state/sidebar/clearTabs";
 import { tidy as tidyTabs } from "../../state/sidebar/tidyUi";
 import { openSidebarMenu } from "../../state/sidebar/menus";
 import { PINNED_FOLD_TITLES, togglePinnedFold } from "../../state/sidebar/pinnedFold";
@@ -69,7 +69,7 @@ export const ClearDivider = memo(function ClearDivider({ windowId, profileId, li
                   <DividerButton
                     title="Clear"
                     label="Clear unpinned tabs"
-                    onPress={() => closeAllTabs(windowId)}
+                    onPress={() => void confirmCloseAllTabs(windowId)}
                     icon={(color) => <Symbol name="arrow.down" size={9} weight="semibold" color={color} style={{ width: 8, height: 11, marginRight: space.xs }} />}
                   />
                 ) : null}

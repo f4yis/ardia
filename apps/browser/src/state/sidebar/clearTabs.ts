@@ -1,3 +1,4 @@
+import { confirm } from "../../platform/dialogs";
 import { closeTab } from "../browser/actions";
 import { useBrowser } from "../browser/store";
 import { plural } from "../browser/model";
@@ -11,6 +12,17 @@ const store = () => useBrowser.getState();
 export function closeAllTabs(windowId: string) {
   const cleared = store().clearUnpinnedTabs(windowId);
   if (cleared?.entries.length) showClearUndo(cleared, `Cleared ${plural(cleared.entries.length, "Tab")}`, "arrow.down");
+}
+
+export async function confirmCloseAllTabs(windowId: string) {
+  const { confirmed } = await confirm({
+    title: "Clear unpinned tabs?",
+    message: "Every unpinned tab except the current one closes. You can undo it from the toast.",
+    confirmTitle: "Clear",
+    destructive: true,
+    windowId,
+  });
+  if (confirmed) closeAllTabs(windowId);
 }
 
 export function cleanUpWithUndo(windowId: string) {
